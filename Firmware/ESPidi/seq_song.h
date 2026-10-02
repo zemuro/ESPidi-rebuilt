@@ -36,9 +36,9 @@ public:
     void onClockTick() override;
     void resetClockPhase() override;
     
-    bool handleNoteOn(uint8_t note, uint8_t velocity) override { return false; }
-    bool handleNoteOff(uint8_t note) override { return false; }
-    bool handleCC(uint8_t number, uint8_t value) override { return false; }
+    bool handleNoteOn(uint8_t note, uint8_t velocity, uint8_t channel) override { (void)note; (void)velocity; (void)channel; return false; }
+    bool handleNoteOff(uint8_t note, uint8_t channel) override { (void)note; (void)channel; return false; }
+    bool handleCC(uint8_t number, uint8_t value, uint8_t channel) override { (void)number; (void)value; (void)channel; return false; }
     bool isEnabled() override { return enabled; }
     
     void play() override;

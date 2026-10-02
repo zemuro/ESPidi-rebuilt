@@ -82,7 +82,7 @@ void Arpeggiator::onClockTick() {
     }
 }
 
-bool Arpeggiator::handleNoteOn(uint8_t note, uint8_t velocity) {
+bool Arpeggiator::handleNoteOn(uint8_t note, uint8_t velocity, uint8_t channel) {
     if (params.hold) {
         if (heldCount == 0) {
             holdNoteCount = 0;
@@ -105,7 +105,7 @@ bool Arpeggiator::handleNoteOn(uint8_t note, uint8_t velocity) {
                 strumNotes[strumCount] = note;
                 strumCount++;
             }
-            MIDI.sendNoteOn(note, velocity, params.channel);
+            MIDI.sendNoteOn(note, velocity, channel);
         }
         
         buildNotes();
@@ -128,7 +128,7 @@ bool Arpeggiator::handleNoteOn(uint8_t note, uint8_t velocity) {
     return false;
 }
 
-bool Arpeggiator::handleNoteOff(uint8_t note) {
+bool Arpeggiator::handleNoteOff(uint8_t note, uint8_t channel) {
     if (params.hold) {
         noteOff(note);
         return true;

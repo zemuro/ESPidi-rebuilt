@@ -145,30 +145,30 @@ void midi_setup() {
 
 void midi_handleNoteOn(byte channel, byte note, byte velocity) {
     monitor.lastChannel = channel;
-    monitor.handleNoteOn(note, velocity);
+    monitor.handleNoteOn(note, velocity, channel);
     
     if (currentAppType == APP_MONITOR) return;
     
-    if (currentApp->handleNoteOn(note, velocity)) return;
+    if (currentApp->handleNoteOn(note, velocity, channel)) return;
     MIDI.sendNoteOn(note, velocity, channel);
 }
 
 void midi_handleNoteOff(byte channel, byte note, byte velocity) {
     monitor.lastChannel = channel;
-    monitor.handleNoteOff(note);
+    monitor.handleNoteOff(note, channel);
     
     if (currentAppType == APP_MONITOR) return;
     
-    if (currentApp->handleNoteOff(note)) return;
+    if (currentApp->handleNoteOff(note, channel)) return;
     MIDI.sendNoteOff(note, velocity, channel);
 }
 
 void midi_handleCC(byte channel, byte number, byte value) {
-    monitor.handleCC(number, value);
+    monitor.handleCC(number, value, channel);
     
     if (currentAppType == APP_MONITOR) return;
     
-    if (currentApp->handleCC(number, value)) return;
+    if (currentApp->handleCC(number, value, channel)) return;
     MIDI.sendControlChange(number, value, channel);
 }
 
