@@ -13,12 +13,14 @@ def test_f2_step_edit_fast_turn(dut, rec):
     """Быстрый поворот (в основном цикле накопилось 10 щелчков) должен сдвинуть шаг на 10, а не на 1."""
     dut.use("mel")
     dut.step_edit()
-    assert dut.state()["mel"]["stepedit"]
+    st = dut.state()["mel"]
+    assert st["stepedit"]
+    start = st["edit"]
     dut.c.enc(10)
     time.sleep(0.2)
-    edit = dut.state()["mel"]["edit"]
-    rec("редактируемый шаг после 10 щелчков", edit)
-    assert edit == 10, f"шаг сместился на {edit}: delta сводится к знаку"
+    moved = (dut.state()["mel"]["edit"] - start) % 16
+    rec("сдвиг редактируемого шага после 10 щелчков", moved)
+    assert moved == 10, f"шаг сместился на {moved}: delta сводится к знаку"
 
 
 # ------------------------------------------------------------------ G

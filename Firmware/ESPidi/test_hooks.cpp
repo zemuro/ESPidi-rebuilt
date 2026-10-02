@@ -29,6 +29,8 @@ extern SettingsApp settingsApp;
 extern bool needsSave;
 extern unsigned long lastChangeTime;
 extern bool stepEditMode;
+extern uint8_t lastEditStep;
+extern bool lastEditStepValid;
 void saveAllSettings();
 
 // ---------------------------------------------------------------- метрики
@@ -148,7 +150,7 @@ static int pinByName(const char* n) {
 // ---------------------------------------------------------------- вывод
 
 static void jf(String& s, const char* fmt, ...) {
-    char buf[160];
+    char buf[512];
     va_list ap;
     va_start(ap, fmt);
     vsnprintf(buf, sizeof(buf), fmt, ap);
@@ -165,6 +167,7 @@ static void reply(uint32_t id, const String& json) {
     out += json;
     out += '\n';
     Serial.print(out);
+    Serial.flush();  // HWCDC держит неполный 64-байтный пакет в FIFO — выталкиваем
 }
 
 static void replyErr(uint32_t id, const char* msg) {
@@ -274,6 +277,12 @@ static void doReset() {
     songSeq.stepEditActive = false;
     songSeq.stepSelectMode = false;
     stepEditMode = false;
+    lastEditStep = 0;
+    lastEditStepValid = false;
+    melSeq.setCurrentStep(0);
+    melSeq.setEditStepDirect(0);
+    songSeq.setCurrentStep(0);
+    songSeq.setEditStepDirect(0);
     arp.params = ArpParams();
     melSeq.params = MelSeqParams();
     songSeq.params = SongParams();
@@ -436,6 +445,8 @@ static void cmdSongDump(uint32_t id) {
     reply(id, s);
 }
 
+static uint32_t s_floodUntil = 0;  // millis(): до какого момента забивать MIDI OUT байтами Clock
+
 static void execLine(char* line) {
     char* tok[8] = {nullptr};
     int n = 0;
@@ -524,6 +535,10 @@ static void execLine(char* line) {
         if (needsSave) lastChangeTime = millis() - SAVE_DELAY_MS - 1;
         return reply(id, "{\"ok\":1}");
     }
+    if (!strcmp(cmd, "txflood")) {  // txflood <сек>: непрерывный поток 0xF8 на MIDI OUT (проверка выхода мультиметром)
+        s_floodUntil = millis() + 1000UL * (a1 ? atoi(a1) : 30);
+        return reply(id, "{\"ok\":1}");
+    }
     if (!strcmp(cmd, "fs")) return cmdFs(id, a1, a2, a3, a4);
     if (!strcmp(cmd, "load")) {  // load mel|song <slot0>
         if (!a1 || !a2) return replyErr(id, "load mel|song <slot0>");
@@ -558,12 +573,20 @@ static void execLine(char* line) {
 
 void th_setup() {
     Serial.setTxBufferSize(4096);
+    Serial.setRxBufferSize(2048);  // длинные строки `fs put` не должны переполнять приём
     Serial.begin(115200);
     Serial.setTxTimeoutMs(30);  // не подвешивать цикл, если порт никто не читает
     statsReset();
 }
 
 void th_poll() {
+    if (s_floodUntil) {
+        if ((int32_t)(millis() - s_floodUntil) < 0) {
+            for (int i = 0; i < 8; i++) MIDI.sendRealTime(midi::Clock);
+        } else {
+            s_floodUntil = 0;
+        }
+    }
     static char line[700];
     static size_t len = 0;
     for (int guard = 0; guard < 256 && Serial.available(); guard++) {

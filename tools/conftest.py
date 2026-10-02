@@ -17,7 +17,7 @@ import pytest
 from esptest import analysis, thresholds
 from esptest.console import Console, DeviceError, find_serial_port
 from esptest.dut import Dut
-from esptest.midi import Midi, find_ports
+from esptest.midi import Midi, find_ports, probe_ports
 
 for _s in (sys.stdout, sys.stderr):
     try:
@@ -77,7 +77,7 @@ def console(request):
     con = Console(port)
     try:
         con.open()
-        info = con.ping()
+        info = con.handshake()
     except Exception as e:
         pytest.skip(f"нет ответа консоли на {port}: {e}. Залейте окружение test: pio run -e test -t upload")
     if info.get("fw") != "test":
@@ -97,7 +97,11 @@ def midi(request):
     if i is None or o is None:
         pytest.skip(f"MIDI-порты не определены. Входы ПК: {ins}; выходы ПК: {outs}. "
                     "Задайте --midi-in / --midi-out (подстрока имени).")
-    m = Midi(i, o)
+    try:
+        probe_ports(i, o)
+        m = Midi(i, o)
+    except Exception as e:
+        pytest.exit(f"MIDI: {e}", returncode=3)
     yield m
     m.close()
 

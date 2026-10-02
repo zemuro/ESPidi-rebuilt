@@ -124,7 +124,17 @@ class Console:
             slot["ev"].set()
 
     # ------------------------------------------------------------ команды
+    _IDEMPOTENT = {"ping", "state", "stats", "screen", "eeprom", "seqdump", "songdump", "events_peek"}
+
     def cmd(self, name: str, *args, timeout: float | None = None) -> dict:
+        try:
+            return self._cmd(name, *args, timeout=timeout)
+        except DeviceError as e:
+            if name in self._IDEMPOTENT and "нет ответа" in str(e):
+                return self._cmd(name, *args, timeout=timeout)   # один повтор при потерянном ответе
+            raise
+
+    def _cmd(self, name: str, *args, timeout: float | None = None) -> dict:
         with self._lock:
             cid = self._next_id
             self._next_id += 1
@@ -144,6 +154,16 @@ class Console:
     # ------------------------------------------------------------ удобные обёртки
     def ping(self) -> dict:
         return self.cmd("ping")
+
+    def handshake(self, tries=6) -> dict:
+        """После сброса первый обмен с USB-CDC теряется — повторяем ping."""
+        last = None
+        for _ in range(tries):
+            try:
+                return self.cmd("ping", timeout=1.0)
+            except DeviceError as e:
+                last = e
+        raise last
 
     def state(self) -> dict:
         return self.cmd("state")
@@ -223,7 +243,10 @@ class Console:
     def fs_get(self, path: str) -> bytes:
         out, off = b"", 0
         while True:
-            r = self.cmd("fs", "get", path, off, 320)
+            try:
+                r = self.cmd("fs", "get", path, off, 320)
+            except DeviceError:
+                r = self.cmd("fs", "get", path, off, 320)   # чтение идемпотентно — один повтор
             chunk = bytes.fromhex(r["hex"])
             out += chunk
             off += len(chunk)
@@ -234,7 +257,7 @@ class Console:
         assert data, "fs_put: пустой файл не поддерживается"
         off = 0
         while off < len(data):
-            chunk = data[off:off + 240]
+            chunk = data[off:off + 120]
             self.cmd("fs", "put", path, off, chunk.hex())
             off += len(chunk)
 
@@ -256,7 +279,7 @@ class Console:
             try:
                 self.port = port
                 self.open()
-                self.ping()
+                self.handshake()
                 self.virt(True)
                 return
             except Exception as e:  # порт ещё не появился / не отвечает

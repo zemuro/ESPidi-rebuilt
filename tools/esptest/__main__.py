@@ -45,11 +45,19 @@ def main():
         except KeyboardInterrupt:
             pass
         out.close_port()
+    elif cmd == "dutflood":
+        # python -m esptest dutflood [сек] — ESPidi сама забивает свой MIDI OUT байтами Clock
+        secs = int(sys.argv[2]) if len(sys.argv) > 2 else 60
+        c = Console(find_serial_port()).open()
+        c.handshake()
+        c.cmd("txflood", secs)
+        print(f"ESPidi шлёт поток на MIDI OUT {secs} с. На гнезде DIN переходника: красный — пин 4, чёрный — пин 5.")
+        c.close()
     elif cmd == "probe":
         port = find_serial_port()
         print("порт:", port)
         c = Console(port).open()
-        print(c.ping())
+        print(c.handshake())
         print(c.state())
         c.close()
     else:

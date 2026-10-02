@@ -89,6 +89,25 @@ def find_ports(in_hint: str | None = None, out_hint: str | None = None):
     return pick(ins, in_hint), pick(outs, out_hint), ins, outs
 
 
+class MidiPortHang(RuntimeError):
+    pass
+
+
+def probe_ports(in_index: int, out_index: int, timeout: float = 10.0):
+    """Драйверы дешёвых USB-MIDI кабелей после аварийно завершённого процесса могут навсегда
+    зависнуть в midiInOpen/midiOutOpen, причём python-rtmidi держит GIL — тайм-аут внутри
+    процесса не спасает. Поэтому пробуем открыть порты в подпроцессе."""
+    import subprocess, sys
+    code = ("import rtmidi;i=rtmidi.MidiIn();i.open_port(%d);o=rtmidi.MidiOut();o.open_port(%d);"
+            "i.close_port();o.close_port()" % (in_index, out_index))
+    try:
+        subprocess.run([sys.executable, "-c", code], timeout=timeout, check=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    except subprocess.TimeoutExpired:
+        raise MidiPortHang(f"драйвер MIDI не открыл порты за {timeout:.0f} с — переподключите "
+                           "USB-MIDI кабель (порт остался занят зависшим процессом)")
+
+
 class Midi:
     def __init__(self, in_index: int, out_index: int):
         self._in = rtmidi.MidiIn()

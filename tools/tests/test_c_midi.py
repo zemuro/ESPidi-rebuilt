@@ -104,7 +104,35 @@ def test_c5_passthrough_other_messages(dut, name):
     _PASS[name](dut.midi)
     dut.midi.wait_quiet(80, 1.0)
     out = dut.midi.since(0)
+    if name == "sysex":
+        # После SysEx прошивка перестаёт принимать ноты/CC до перезагрузки (см. C11) —
+        # перезагружаем, чтобы не заражать следующие тесты.
+        dut.c.reboot()
+        dut.settle(100, 2)
     assert out, f"{name}: на выходе тишина — сообщение отброшено прошивкой"
+
+
+@pytest.mark.tid("C11", "P0")
+def test_c11_sysex_locks_note_input(dut, rec):
+    """Один SysEx на MIDI IN не должен отключать приём нот (Clock при этом продолжает проходить)."""
+    dut.c.app(3)
+    seen = []
+    for tag, ch, action in (("до SysEx", 1, None), ("после SysEx", 2, lambda: dut.midi.sysex(0x7D, 1, 2, 3)),
+                            ("после лишнего F7", 3, lambda: dut.midi.send(0xF7))):
+        if action:
+            action()
+            time.sleep(0.3)
+        dut.midi.note_on(ch, 60, 100)
+        time.sleep(0.25)
+        notes = dut.state()["mon"]["notes"]
+        dut.midi.note_off(ch, 60)
+        time.sleep(0.15)
+        seen.append((tag, any(n[0] == ch for n in notes)))
+    rec("нота видна монитору", seen)
+    dut.c.reboot()
+    dut.settle(100, 2)
+    assert seen[0][1], "стенд: нота не принята даже до SysEx"
+    assert seen[1][1], "после одного SysEx прошивка перестала принимать ноты (до перезагрузки)"
 
 
 def _glyph(scr, x, y):

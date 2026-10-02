@@ -40,6 +40,8 @@ def _verdict(dut, msgs, noise, rec, label):
 
 def _begin(dut):
     dut.settings(clkout=True)
+    dut.c.flushsave()          # сохранение от смены настроек — до замера, а не внутри него
+    time.sleep(0.6)
     dut.settle(100, 2)
     dut.c.stats_reset()
     return dut.midi.mark()
@@ -49,6 +51,8 @@ def _begin(dut):
 def test_b1_idle_baseline(dut, noise_floor, rec, run_s):
     """Контроль: ничего не играет. Если не проходит — стенд шумит, остальным B-тестам верить нельзя."""
     dut.settings(clkout=True)
+    dut.c.flushsave()          # иначе отложенное сохранение (B8) попадёт в окно контрольного замера
+    time.sleep(0.6)
     dut.settle(100, 2)
     dut.c.stats_reset()
     msgs = dut.midi.capture(run_s)
