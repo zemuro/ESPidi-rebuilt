@@ -20,6 +20,9 @@ void MelodicSequencer::activePoolTick(SeqActiveNote* pool, int maxPool) {
 }
 
 void MelodicSequencer::activePoolStopAll(SeqActiveNote* pool, int maxPool) {
+#ifdef ESPIDI_TEST
+    TH_SCOPE("mel.stopAll");
+#endif
     for (int i = 0; i < maxPool; i++) {
         if (!pool[i].used) continue;
         MIDI.sendNoteOff(pool[i].note, 0, pool[i].channel);
@@ -575,6 +578,9 @@ bool MelodicSequencer::saveToFile(uint8_t slot) {
 }
 
 bool MelodicSequencer::loadFromFile(uint8_t slot) {
+#ifdef ESPIDI_TEST
+    TH_SCOPE("mel.load");
+#endif
     if (slot >= MAX_PATTERNS) return false;
     if (!LittleFS.begin(true)) return false;
 

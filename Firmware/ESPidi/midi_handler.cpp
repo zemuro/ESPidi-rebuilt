@@ -30,6 +30,9 @@ static void syncAppsBpmFromGlobal() {
 }
 
 void saveAllSettings() {
+#ifdef ESPIDI_TEST
+    TH_SCOPE("save.eeprom");
+#endif
     syncAppsBpmFromGlobal();
     uint8_t appByte = (uint8_t)currentAppType;
     EEPROM.put(0, appByte);
@@ -40,6 +43,9 @@ void saveAllSettings() {
     EEPROM.put(EEPROM_SONG_DATA, songSeq.getCurrentSong());
     EEPROM.put(EEPROM_SETTINGS, settingsApp.params);
     EEPROM.commit();
+#ifdef ESPIDI_TEST
+    th_countCommit();
+#endif
 }
 
 void loadAllSettings() {

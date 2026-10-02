@@ -12,6 +12,9 @@ extern MelodicSequencer melSeq;
 extern SongSequencer songSeq;
 
 void setup() {
+#ifdef ESPIDI_TEST
+    th_setup();
+#endif
     hw_initPins();
     hw_initDisplay();
     hw_initMIDI();
@@ -30,6 +33,10 @@ void setup() {
 }
 
 void loop() {
+#ifdef ESPIDI_TEST
+    th_loopBegin();
+    th_poll();
+#endif
     // MIDI и clock — высший приоритет
     MIDI.read();
     clock_update();

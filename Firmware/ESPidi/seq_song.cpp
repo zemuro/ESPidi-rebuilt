@@ -43,6 +43,9 @@ void SongSequencer::initArrays() {
 }
 
 bool SongSequencer::loadPatternToBuffer(uint8_t slot) {
+#ifdef ESPIDI_TEST
+    TH_SCOPE("song.loadBuf");
+#endif
     if (slot == patternBufferSlot) return true;  // уже загружен
     if (slot == 0 || slot > 64) {
         patternBufferSlot = 255;
@@ -322,6 +325,9 @@ void SongSequencer::playPatternStep(uint8_t step, int8_t transpose) {
 
 
 void SongSequencer::stopAllNotes() {
+#ifdef ESPIDI_TEST
+    TH_SCOPE("song.stopAll");
+#endif
     for (int i = 0; i < 128; i++) {
         MIDI.sendNoteOff(i, 0, params.channel);
     }

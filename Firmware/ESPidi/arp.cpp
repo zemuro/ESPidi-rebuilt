@@ -253,6 +253,9 @@ void Arpeggiator::stopStrum() {
 }
 
 void Arpeggiator::stopSounding() {
+#ifdef ESPIDI_TEST
+    TH_SCOPE("arp.stopSounding");
+#endif
     stopStrum();
     for (int i = 0; i < 128; i++) {
         MIDI.sendNoteOff(i, 0, params.channel);

@@ -46,6 +46,9 @@ uint32_t clock_getTickCount() {
 }
 
 void clock_dispatchTick() {
+#ifdef ESPIDI_TEST
+    TH_SCOPE("dispatch_tick");
+#endif
     tickCount++;
     if (arp.isEnabled()) arp.onClockTick();
     if (melSeq.isEnabled()) melSeq.onClockTick();
@@ -233,6 +236,9 @@ void clock_onLocalPlay(bool nowPlaying) {
 }
 
 void clock_update() {
+#ifdef ESPIDI_TEST
+    th_serviceMark();
+#endif
     unsigned long now = micros();
 
     if (sourceExternal && clockAlive) {
@@ -270,6 +276,9 @@ void clock_update() {
 
     uint8_t burst = 0;
     while ((long)(now - nextClockOutUs) >= 0 && burst < 8) {
+#ifdef ESPIDI_TEST
+        th_tickLate((uint32_t)(now - nextClockOutUs));
+#endif
         clock_dispatchTick();
         if (outEnabled) {
             MIDI.sendRealTime(midi::Clock);

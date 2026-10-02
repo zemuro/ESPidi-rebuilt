@@ -266,6 +266,9 @@ void ui_drawScreen() {
   }
   lastDraw = now;
   uiDirty = 0;
+#ifdef ESPIDI_TEST
+  TH_SCOPE("ui.draw");
+#endif
 
   MIDI.read();
 
