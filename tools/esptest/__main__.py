@@ -1,4 +1,4 @@
-"""python -m esptest ports | probe — быстрая диагностика стенда."""
+"""python -m esptest ports | probe | flood <порт> [сек] — быстрая диагностика стенда."""
 import sys
 
 from .console import Console, find_serial_port
@@ -20,6 +20,31 @@ def main():
         for n, name in enumerate(outs):
             print(f"  [{n}] {name}" + ("   <- авто" if n == o else ""))
         print("\nАвтоопределение MIDI не сработало? Задайте --midi-in/--midi-out или ESPIDI_MIDI_IN/OUT.")
+    elif cmd == "flood":
+        # python -m esptest flood "<подстрока имени MIDI-выхода ПК>" [секунды]
+        # Непрерывный поток 0xF8 на выход ПК: на пине 5 DIN среднее напряжение падает,
+        # на пине 4 — нет. Так мультиметром определяется тип TRS-переходника (A/B).
+        import time
+        import rtmidi
+        hint = sys.argv[2] if len(sys.argv) > 2 else None
+        secs = float(sys.argv[3]) if len(sys.argv) > 3 else 30.0
+        _, o, _, outs = find_ports(None, hint)
+        if o is None:
+            print("Укажите порт подстрокой имени. Выходы ПК:", outs)
+            return
+        out = rtmidi.MidiOut()
+        out.open_port(o)
+        print(f"Поток Clock на «{outs[o]}» {secs:.0f} с. Красный щуп — кончик, чёрный — кольцо: "
+              "плюс → Type B, минус → Type A. Ctrl+C — стоп.")
+        end = time.time() + secs
+        try:
+            while time.time() < end:
+                for _ in range(64):
+                    out.send_message([0xF8])
+                time.sleep(0.005)  # ≈ 12 800 байт/с запрошено — линия 31250 бод занята полностью
+        except KeyboardInterrupt:
+            pass
+        out.close_port()
     elif cmd == "probe":
         port = find_serial_port()
         print("порт:", port)
