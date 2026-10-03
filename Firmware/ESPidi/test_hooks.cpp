@@ -115,6 +115,44 @@ void th_tickLate(uint32_t lateUs) {
 
 void th_countCommit() { s_commits++; }
 
+// ---------------------------------------------------------------- журнал входящих MIDI-байтов
+
+struct RxEntry {
+    uint32_t t;
+    uint8_t b;
+};
+static RxEntry s_rx[512];
+static uint16_t s_rxHead = 0, s_rxCount = 0;
+static uint32_t s_rxTotal = 0;
+
+struct MidiEv {
+    uint32_t t;
+    char kind;
+    uint32_t v;
+};
+static MidiEv s_mev[32];
+static uint8_t s_mevHead = 0, s_mevCount = 0;
+
+void th_logRx(uint8_t b) {
+    s_rx[s_rxHead] = {micros(), b};
+    s_rxHead = (s_rxHead + 1) % 512;
+    if (s_rxCount < 512) s_rxCount++;
+    s_rxTotal++;
+}
+
+void th_logMidiEvent(char kind, uint32_t value) {
+    s_mev[s_mevHead] = {micros(), kind, value};
+    s_mevHead = (s_mevHead + 1) % 32;
+    if (s_mevCount < 32) s_mevCount++;
+}
+
+static void onSysEx(byte* data, unsigned size) {
+    (void)data;
+    th_logMidiEvent('S', size);
+}
+
+static void onMidiError(int8_t err) { th_logMidiEvent('E', (uint8_t)err); }
+
 void th_scopeRecord(const char* name, uint32_t us) {
     ScopeStat* slot = nullptr;
     for (auto& s : s_scopes) {
@@ -535,6 +573,35 @@ static void execLine(char* line) {
         if (needsSave) lastChangeTime = millis() - SAVE_DELAY_MS - 1;
         return reply(id, "{\"ok\":1}");
     }
+    if (!strcmp(cmd, "rxlog")) {  // rxlog [clear]: последние принятые байты MIDI IN и события парсера
+        if (a1 && !strcmp(a1, "clear")) {
+            s_rxHead = s_rxCount = 0;
+            s_rxTotal = 0;
+            s_mevHead = s_mevCount = 0;
+            return reply(id, "{\"ok\":1}");
+        }
+        uint16_t n = s_rxCount > 200 ? 200 : s_rxCount;  // ответ ≤ ~2 КБ
+        uint16_t start = (s_rxHead + 512 - n) % 512;
+        String s;
+        s.reserve(2400);
+        jf(s, "{\"total\":%u,\"hex\":\"", (unsigned)s_rxTotal);
+        char h[3];
+        for (uint16_t i = 0; i < n; i++) {
+            snprintf(h, sizeof(h), "%02x", s_rx[(start + i) % 512].b);
+            s += h;
+        }
+        s += "\",\"t\":[";
+        for (uint16_t i = 0; i < n; i++)
+            jf(s, "%s%u", i ? "," : "", (unsigned)s_rx[(start + i) % 512].t);
+        s += "],\"ev\":[";
+        uint8_t es = (s_mevHead + 32 - s_mevCount) % 32;
+        for (uint8_t i = 0; i < s_mevCount; i++) {
+            const MidiEv& e = s_mev[(es + i) % 32];
+            jf(s, "%s[%u,\"%c\",%u]", i ? "," : "", (unsigned)e.t, e.kind, (unsigned)e.v);
+        }
+        s += "]}";
+        return reply(id, s);
+    }
     if (!strcmp(cmd, "txflood")) {  // txflood <сек>: непрерывный поток 0xF8 на MIDI OUT (проверка выхода мультиметром)
         s_floodUntil = millis() + 1000UL * (a1 ? atoi(a1) : 30);
         return reply(id, "{\"ok\":1}");
@@ -580,6 +647,12 @@ void th_setup() {
 }
 
 void th_poll() {
+    static bool handlersSet = false;
+    if (!handlersSet) {  // после midi_setup(): прошивка эти два обработчика не использует
+        MIDI.setHandleSystemExclusive(onSysEx);
+        MIDI.setHandleError(onMidiError);
+        handlersSet = true;
+    }
     if (s_floodUntil) {
         if ((int32_t)(millis() - s_floodUntil) < 0) {
             for (int i = 0; i < 8; i++) MIDI.sendRealTime(midi::Clock);

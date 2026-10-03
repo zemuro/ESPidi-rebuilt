@@ -91,7 +91,7 @@ _PASS = {
     "program": lambda m: m.program(1, 5),
     "channel_pressure": lambda m: m.channel_pressure(1, 77),
     "poly_pressure": lambda m: m.poly_pressure(1, 60, 55),
-    "sysex": lambda m: m.sysex(0x7D, 1, 2, 3),
+    "sysex": lambda m: m.send(0xF0, 0x7D, 0xF7),   # короткий: этот кабель режет SysEx длиннее 3 байт
 }
 
 
@@ -105,20 +105,24 @@ def test_c5_passthrough_other_messages(dut, name):
     dut.midi.wait_quiet(80, 1.0)
     out = dut.midi.since(0)
     if name == "sysex":
-        # После SysEx прошивка перестаёт принимать ноты/CC до перезагрузки (см. C11) —
+        # Обрезанный кабелем SysEx отключает приём нот до перезагрузки (см. C11) —
         # перезагружаем, чтобы не заражать следующие тесты.
         dut.c.reboot()
         dut.settle(100, 2)
     assert out, f"{name}: на выходе тишина — сообщение отброшено прошивкой"
 
 
-@pytest.mark.tid("C11", "P0")
-def test_c11_sysex_locks_note_input(dut, rec):
-    """Один SysEx на MIDI IN не должен отключать приём нот (Clock при этом продолжает проходить)."""
+@pytest.mark.tid("C11", "P1")
+def test_c11_truncated_sysex_locks_note_input(dut, rec):
+    """Обрезанный SysEx (без F7) не должен навсегда отключать приём нот: по спецификации MIDI
+    любой статус-байт, кроме реалтайма, завершает незакрытый SysEx.
+    Причина найдена по журналу rxlog: дешёвый USB-MIDI кабель режет SysEx длиннее 3 байт до F0 7D 01,
+    а библиотека MIDI складывает следующие ноты в буфер SysEx и ждёт F7, которого не будет."""
     dut.c.app(3)
+    dut.c.cmd("rxlog", "clear")
     seen = []
-    for tag, ch, action in (("до SysEx", 1, None), ("после SysEx", 2, lambda: dut.midi.sysex(0x7D, 1, 2, 3)),
-                            ("после лишнего F7", 3, lambda: dut.midi.send(0xF7))):
+    for tag, ch, action in (("до SysEx", 1, None),
+                            ("после обрезанного SysEx", 2, lambda: dut.midi.send(0xF0, 0x7D, 0x01))):
         if action:
             action()
             time.sleep(0.3)
@@ -128,11 +132,14 @@ def test_c11_sysex_locks_note_input(dut, rec):
         dut.midi.note_off(ch, 60)
         time.sleep(0.15)
         seen.append((tag, any(n[0] == ch for n in notes)))
+    raw = dut.c.cmd("rxlog")["hex"]
     rec("нота видна монитору", seen)
+    rec("сырые байты на входе", raw)
     dut.c.reboot()
     dut.settle(100, 2)
+    assert "f07d01" in raw, "стенд: обрезанный SysEx не дошёл до устройства"
     assert seen[0][1], "стенд: нота не принята даже до SysEx"
-    assert seen[1][1], "после одного SysEx прошивка перестала принимать ноты (до перезагрузки)"
+    assert seen[1][1], "после обрезанного SysEx прошивка перестала принимать ноты (до перезагрузки)"
 
 
 def _glyph(scr, x, y):

@@ -8,7 +8,11 @@
 #include "config.h"
 
 extern Adafruit_SSD1306 display;
+#ifdef ESPIDI_TEST
+extern MIDI_NAMESPACE::MidiInterface<MIDI_NAMESPACE::SerialMIDI<ThSerial>> MIDI;
+#else
 extern MIDI_NAMESPACE::MidiInterface<MIDI_NAMESPACE::SerialMIDI<HardwareSerial>> MIDI;
+#endif
 
 void hw_initDisplay();
 void hw_initMIDI();
