@@ -1,12 +1,8 @@
 #include "hardware.h"
 
 Adafruit_SSD1306 display(OLED_WIDTH, OLED_HEIGHT, &Wire, -1);
-#ifdef ESPIDI_TEST
-ThSerial thSerial1(Serial1);  // тот же Serial1, но с журналом входящих байтов
-MIDI_CREATE_INSTANCE(ThSerial, thSerial1, MIDI);
-#else
-MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
-#endif
+MidiSerial midiSerial(Serial1);  // Serial1 + завершение обрезанного SysEx (см. midi_serial.h)
+MIDI_CREATE_INSTANCE(MidiSerial, midiSerial, MIDI);
 
 void hw_initDisplay() {
     Wire.begin(SDA_PIN, SCL_PIN);
