@@ -56,7 +56,9 @@ bool SongSequencer::loadPattern(SongPatternBuf& buf, uint8_t slot) {
     if (!f) return false;
 
     memset(&buf, 0, sizeof(buf));
-    f.seek(5);  // заголовок
+    f.seek(4);  // заголовок: MSEQ + версия
+    uint8_t version = 0;
+    f.read(&version, 1);
     MelSeqParams fileParams;
     f.read((uint8_t*)&fileParams, sizeof(MelSeqParams));
     f.read((uint8_t*)buf.notes, sizeof(buf.notes));
@@ -67,7 +69,12 @@ bool SongSequencer::loadPattern(SongPatternBuf& buf, uint8_t slot) {
     f.read((uint8_t*)buf.ccCount, sizeof(buf.ccCount));
     f.read((uint8_t*)buf.tie, sizeof(buf.tie));
     f.read((uint8_t*)buf.transpose, sizeof(buf.transpose));
+    if (version >= 2) {
+        f.seek(f.position() + sizeof(uint8_t) * MAX_SEQ_STEPS * MAX_POLY);  // каналы нот (песня играет на своём CH)
+        f.read((uint8_t*)buf.lengthTicks, sizeof(buf.lengthTicks));
+    }
     f.close();
+    buf.gate = fileParams.gate;
     buf.length = fileParams.length;
     buf.slot = slot;
     return true;
@@ -205,6 +212,8 @@ void SongSequencer::onClockTick() {
         currentStep %= params.length;  // LENGTH уменьшили на ходу — сразу возвращаемся в границы
     }
 
+    tickNoteLengths();
+
     if (startPending) {  // первый такт после PLAY/Start — шаг песни начинается сразу
         startPending = false;
         enterStep();
@@ -236,6 +245,22 @@ void SongSequencer::onClockTick() {
             ui_markDirty(2);
         }
     }
+}
+
+// Длина нот в песне — как в секвенсоре: GATE паттерна, записанная длина ноты, цепочка Tie.
+void SongSequencer::tickNoteLengths() {
+    uint8_t n = 0;
+    for (uint8_t i = 0; i < lastPlayedCountForTie; i++) {
+        if (lastPlayedTicksLeft[i] > 0) lastPlayedTicksLeft[i]--;
+        if (lastPlayedTicksLeft[i] == 0) {
+            MIDI.sendNoteOff(lastPlayedNotesForTie[i], 0, params.channel);
+            continue;
+        }
+        lastPlayedNotesForTie[n] = lastPlayedNotesForTie[i];
+        lastPlayedTicksLeft[n] = lastPlayedTicksLeft[i];
+        n++;
+    }
+    lastPlayedCountForTie = n;
 }
 
 void SongSequencer::playPatternStep(uint8_t step, int8_t transpose) {
@@ -280,6 +305,7 @@ void SongSequencer::playPatternStep(uint8_t step, int8_t transpose) {
         // Tie: останавливаем только ноты, которых нет в текущем шаге
         uint8_t newLastPlayedCount = 0;
         int8_t newLastPlayedNotes[SONG_MAX_SOUNDING];
+        uint16_t newTicksLeft[SONG_MAX_SOUNDING];
         
         for (int i = 0; i < lastPlayedCountForTie; i++) {
             bool found = false;
@@ -295,6 +321,7 @@ void SongSequencer::playPatternStep(uint8_t step, int8_t transpose) {
                 MIDI.sendNoteOff(lastPlayedNotesForTie[i], 0, params.channel);
             } else {
                 if (newLastPlayedCount < SONG_MAX_SOUNDING) {
+                    newTicksLeft[newLastPlayedCount] = lastPlayedTicksLeft[i];
                     newLastPlayedNotes[newLastPlayedCount++] = lastPlayedNotesForTie[i];
                 }
             }
@@ -303,6 +330,7 @@ void SongSequencer::playPatternStep(uint8_t step, int8_t transpose) {
         lastPlayedCountForTie = newLastPlayedCount;
         for (int i = 0; i < newLastPlayedCount; i++) {
             lastPlayedNotesForTie[i] = newLastPlayedNotes[i];
+            lastPlayedTicksLeft[i] = newTicksLeft[i];
         }
     }
     
@@ -327,16 +355,22 @@ void SongSequencer::playPatternStep(uint8_t step, int8_t transpose) {
             if (!alreadyPlaying) {
                 MIDI.sendNoteOn((uint8_t)transposedNote, cur->velocities[step][i], params.channel);
             }
+            // Длина ноты — от этого шага: GATE паттерна, записанная длина, цепочка Tie
+            uint16_t len = MelodicSequencer::computeNoteLengthTicks(
+                step, i, cur->length, patternStepTicks(steps[currentStep].divider), cur->gate,
+                cur->tie, &cur->lengthTicks[0][0]);
             
             // Добавляем в список играющих нот (избегаем дубликатов)
             bool duplicate = false;
             for (int j = 0; j < lastPlayedCountForTie; j++) {
                 if (lastPlayedNotesForTie[j] == (uint8_t)transposedNote) {
                     duplicate = true;
+                    lastPlayedTicksLeft[j] = len;
                     break;
                 }
             }
             if (!duplicate && lastPlayedCountForTie < SONG_MAX_SOUNDING) {
+                lastPlayedTicksLeft[lastPlayedCountForTie] = len;
                 lastPlayedNotesForTie[lastPlayedCountForTie++] = (uint8_t)transposedNote;
             }
         }

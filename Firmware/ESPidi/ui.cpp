@@ -1155,8 +1155,9 @@ void ui_handleEncoder(int delta) {
       scheduleGlobalSave();
     }
     
-    // LENGTH — параметр паттерна/песни, не сохраняем в EEPROM
-    if (strcmp(param.label, "LENGTH") == 0) {
+    // LENGTH (и GATE секвенсора) — параметры паттерна/песни: сохраняются SAVE в файл, не в EEPROM
+    if (strcmp(param.label, "LENGTH") == 0 ||
+        (strcmp(param.label, "GATE") == 0 && currentAppType == APP_MEL_SEQ)) {
       if (currentAppType == APP_MEL_SEQ) {
         melSeq.markDirty();
       } else if (currentAppType == APP_SONG) {
