@@ -428,8 +428,11 @@ static void cmdFs(uint32_t id, char* a1, char* a2, char* a3, char* a4) {
     }
     if (!strcmp(a1, "put") && a2 && a3 && a4) {  // fs put <path> <off> <hex>
         ensureDirs();
-        File f = LittleFS.open(a2, atoi(a3) == 0 ? "w" : "a");
+        // Запись по смещению (а не дописывание) — повтор той же команды безопасен
+        uint32_t off = atoi(a3);
+        File f = LittleFS.open(a2, off == 0 ? "w" : "r+");
         if (!f) return replyErr(id, "open failed");
+        if (off) f.seek(off);
         size_t n = strlen(a4) / 2;
         for (size_t i = 0; i < n; i++) {
             char h[3] = {a4[2 * i], a4[2 * i + 1], 0};
@@ -504,7 +507,8 @@ static void execLine(char* line) {
     char* a4 = n > 5 ? tok[5] : nullptr;
 
     if (!strcmp(cmd, "ping")) {
-        String s = "{\"t\":" + String((unsigned)micros()) + ",\"fw\":\"test\",\"build\":\"" __DATE__ " " __TIME__ "\"}";
+        String s = "{\"t\":" + String((unsigned)micros()) + ",\"rst\":" + String((int)esp_reset_reason()) +
+                   ",\"fw\":\"test\",\"build\":\"" __DATE__ " " __TIME__ "\"}";
         return reply(id, s);
     }
     if (!strcmp(cmd, "state")) return cmdState(id);

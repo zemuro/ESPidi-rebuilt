@@ -70,7 +70,8 @@ class TickLog:
 
 
 class SteppedClock:
-    def __init__(self, midi: Midi, quiet_ms: float = 28.0, max_wait: float = 1.5):
+    # max_wait < 0,5 с: прошивка считает Clock потерянным после 0,5 с тишины и останавливается
+    def __init__(self, midi: Midi, quiet_ms: float = 28.0, max_wait: float = 0.35):
         self.midi, self.quiet_ms, self.max_wait = midi, quiet_ms, max_wait
 
     def tick(self, n: int = 1) -> TickLog:

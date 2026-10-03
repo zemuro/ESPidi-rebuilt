@@ -174,20 +174,21 @@ def test_d10_song_rnd_cycle_off_stops_early(dut, rec):
 
 
 def _song_step_duration(dut, mute):
+    """Длительность шага песни по MIDI-выходу, без опроса консоли во время игры (иначе задержки
+    консоли выглядят для прошивки как потеря Clock): шаг 1 — паттерн из 8 шагов (с MUTE или без),
+    шаг 2 — паттерн с нотой 62. Тик первой ноты 62 = длительность шага 1 + сдвиг первого импульса."""
     dut.install_pattern(0, straight(8, note=60))
-    s = Song(length=2).step(0, slot=1, div=4, pause=16, mute=mute).step(1, slot=0, pause=64, div=2)
+    dut.install_pattern(1, Pattern(length=8).step(0, [62]))
+    s = Song(length=2).step(0, slot=1, div=4, pause=16, mute=mute).step(1, slot=2, div=4)
     dut.install_song(0, s)
     dut.load_song(0)
     dut.settings(clkin=True)
     dut.use("song", CYCLE=1)
     dut.settle(100, 2)
     dut.play()
-    clk = dut.stepped(quiet_ms=8)
-    for t in range(1, 130):
-        clk.tick(1)
-        if dut.state()["song"]["step"] == 1:
-            return t
-    return None
+    log = dut.stepped(quiet_ms=8).tick(130)
+    ev = log.events(lambda m: m.is_note_on(1, 62))
+    return ev[0][0] if ev else None
 
 
 @pytest.mark.tid("D11", "P1")
@@ -196,9 +197,9 @@ def test_d11_mute_lasts_as_long_as_the_pattern(dut, rec):
     normal = _song_step_duration(dut, mute=0)
     dut.reset()
     muted = _song_step_duration(dut, mute=1)
-    rec("длительность шага, тиков (обычный / MUTE)", (normal, muted))
+    rec("тик первой ноты следующего шага (обычный / MUTE)", (normal, muted))
     assert normal is not None and muted is not None
-    assert normal == muted, f"обычный шаг {normal} тиков, заглушённый {muted} (pauseLength × DIV)"
+    assert normal == muted, f"следующий шаг начался на тике {normal} после обычного и на {muted} после заглушённого"
 
 
 def _note_len_ticks(log):

@@ -25,8 +25,8 @@ def retriggers(msgs):
 
 @pytest.mark.tid("C1", "P0")
 def test_c1_seq_strum_no_double_send(dut, rec):
-    """SEQ, STRUM=ON, REC выключен: нота должна уйти на выход один раз."""
-    dut.use("mel", STRUM=1)
+    """SEQ, THRU=ON, REC выключен: нота должна уйти на выход один раз."""
+    dut.use("mel", THRU=1)
     dut.midi.clear()
     dut.midi.note_on(1, 60, 100)
     dut.midi.wait_quiet(60, 1.0)
@@ -37,6 +37,20 @@ def test_c1_seq_strum_no_double_send(dut, rec):
     offs = analysis.count(msgs, lambda m: m.is_note_off(1, 60))
     rec("NoteOn / NoteOff на выходе", f"{ons} / {offs}")
     assert (ons, offs) == (1, 1), f"ожидалось 1/1, получено {ons}/{offs}"
+
+
+@pytest.mark.tid("C12", "P1")
+def test_c12_seq_strum_off_blocks_input(dut):
+    """Решение автора: STRUM = THRU. OFF — входящий сигнал в режиме SEQ на выход не проходит."""
+    dut.use("mel", THRU=0)
+    dut.midi.clear()
+    dut.midi.note_on(1, 60, 100)
+    dut.midi.cc(1, 74, 10)
+    dut.midi.wait_quiet(60, 1.0)
+    dut.midi.note_off(1, 60)
+    dut.midi.wait_quiet(60, 1.0)
+    out = [m for m in dut.midi.since(0) if m.kind in ("note_on", "note_off", "cc")]
+    assert not out, f"при STRUM OFF вход прошёл на выход: {out}"
 
 
 @pytest.mark.tid("C2", "P0")
@@ -56,7 +70,7 @@ def test_c2_arp_hold_swallows_note_off(dut):
 def test_c3_arp_retrigger_without_note_off(dut, rec):
     """Новая клавиша при играющем арпеджио: NoteOn арпа перезаписывает lastNote без NoteOff."""
     dut.settings(clkin=True)
-    dut.use("arp", DIV=2, GATE=100, STRUM=0)
+    dut.use("arp", DIV=2, GATE=100, THRU=0)
     dut.play()
     dut.midi.clear()
     clk = dut.stepped()
@@ -179,7 +193,7 @@ def test_c7_note_on_velocity_zero_is_note_off(dut):
 @pytest.mark.tid("C9", "P2")
 def test_c9_arp_capacity_8_keys_4_octaves(dut, rec):
     dut.settings(clkin=True)
-    dut.use("arp", STRUM=0, OCT=4, DIV=5, GATE=60)
+    dut.use("arp", THRU=0, OCT=4, DIV=5, GATE=60)
     dut.play()
     dut.midi.clear()
     for n in range(60, 69):            # 9 клавиш, 9-я не должна попасть
@@ -195,7 +209,7 @@ def test_c9_arp_capacity_8_keys_4_octaves(dut, rec):
 
 @pytest.mark.tid("C10", "P0")
 def test_c10_seq_rec_strum_off_swallows_note_off(dut):
-    """SEQ, STRUM=OFF (по умолчанию), REC ON: NoteOn проходит на выход, а NoteOff съедается."""
+    """SEQ, THRU=OFF (по умолчанию), REC ON: NoteOn проходит на выход, а NoteOff съедается."""
     dut.use("mel")
     dut.rec()
     assert dut.state()["mel"]["rec"] == 1

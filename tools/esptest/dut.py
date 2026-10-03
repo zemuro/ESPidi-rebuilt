@@ -22,6 +22,7 @@ class Dut:
         self.midi.clear()
 
     def reset(self):
+        self.c.handshake()   # после простоя USB-консоль может потерять первые запросы — «прогреваем»
         self.c.reset()
         self.settle()
 

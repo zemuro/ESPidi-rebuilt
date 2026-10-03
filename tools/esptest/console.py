@@ -124,7 +124,7 @@ class Console:
             slot["ev"].set()
 
     # ------------------------------------------------------------ команды
-    _IDEMPOTENT = {"ping", "state", "stats", "screen", "eeprom", "seqdump", "songdump", "load", "rxlog"}
+    _IDEMPOTENT = {"ping", "state", "stats", "screen", "eeprom", "seqdump", "songdump", "load", "rxlog", "fs"}
 
     def cmd(self, name: str, *args, timeout: float | None = None) -> dict:
         try:
@@ -274,8 +274,12 @@ class Console:
         time.sleep(1.0)
         deadline = time.time() + wait
         last = None
+        attempt = 0
         while time.time() < deadline:
-            port = find_serial_port() or self.port
+            attempt += 1
+            # Пока USB заново определяется, перечисление портов Windows (SetupAPI) может
+            # уронить процесс — поэтому первые попытки открываем тот же COM-порт по имени.
+            port = self.port if attempt < 12 else (find_serial_port() or self.port)
             try:
                 self.port = port
                 self.open()

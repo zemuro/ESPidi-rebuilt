@@ -222,7 +222,7 @@ def test_b13_external_clock_lost_hangs_notes(dut):
     """Внешний Clock шёл и пропал, пока нота арпеджио звучит: gate считается в тиках ⇒ без
     реакции на потерю Clock NoteOff не придёт никогда."""
     dut.settings(clkin=True)
-    dut.use("arp", DIV=2, GATE=80, STRUM=0)
+    dut.use("arp", DIV=2, GATE=80, THRU=0)
     dut.play()
     clk = dut.stepped(quiet_ms=10)
     clk.tick(12)                          # Clock идёт
@@ -231,8 +231,10 @@ def test_b13_external_clock_lost_hangs_notes(dut):
     clk.tick(3)                           # gate 24·80/127 ≈ 15 тиков — нота ещё звучит
     time.sleep(1.5)                       # Clock пропал > CLOCK_TIMEOUT (0,5 с); клавиша по-прежнему зажата
     hung = analysis.hanging_notes(dut.midi.since(0))
+    playing = dut.state()["arp"]["en"]
     dut.midi.note_off(1, 60)
     assert not hung, f"зависшие ноты после потери Clock: {sorted(hung)}"
+    assert not playing, "решение автора: при потере Clock приложение останавливается, как по STOP"
 
 
 @pytest.mark.tid("B14", "P1")
