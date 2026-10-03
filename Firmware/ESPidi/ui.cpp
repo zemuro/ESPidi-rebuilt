@@ -797,7 +797,7 @@ void ui_drawScreen() {
         
         display.setCursor(0, y);
         display.print("CH");
-        display.print(note.channel + 1);
+        display.print(note.channel);  // канал уже 1–16
         display.print(" ");
         
         display.setCursor(24, y);
@@ -1102,6 +1102,7 @@ void ui_handleEncoderPress(bool shortPress) {
     if (shortPress) {
       ui_setApp((AppType)menuPosition);
       uiState = UI_NAVIGATE;
+      scheduleGlobalSave();  // запомнить выбранное приложение
     }
     return;
   }
