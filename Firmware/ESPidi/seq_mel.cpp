@@ -25,9 +25,9 @@ void MelodicSequencer::activePoolStopAll(SeqActiveNote* pool, int maxPool) {
         MIDI.sendNoteOff(pool[i].note, 0, pool[i].channel);
         pool[i].used = false;
     }
-    for (uint8_t ch = 1; ch <= 16; ch++) {
-        MIDI.sendControlChange(123, 0, ch);
-    }
+    // Гасим только свои звучащие ноты. CC 123 на все 16 каналов здесь больше не шлём: это
+    // вызывалось на каждом шаге, обрывало ноты других инструментов в цепочке и на ~15 мс
+    // задерживало Clock.
 }
 
 void MelodicSequencer::activePoolNoteOn(SeqActiveNote* pool, int maxPool,
@@ -116,8 +116,11 @@ void MelodicSequencer::update() {
     }
 }
 
+// Следующий такт — граница шага: после PLAY/Start шаг звучит на первом же такте (доля «раз»),
+// а не через шестнадцатую.
 void MelodicSequencer::resetClockPhase() {
-    ticksIntoStep = 0;
+    uint16_t st = stepTicks();
+    ticksIntoStep = st > 0 ? st - 1 : 0;
 }
 
 uint16_t MelodicSequencer::stepTicks() const {
@@ -411,12 +414,12 @@ void MelodicSequencer::recordCC(uint8_t number, uint8_t value) {
 void MelodicSequencer::play() {
     if (enabled) return;
     enabled = true;
-    resetClockPhase();
     direction = 1;
     if (params.mode == 1) currentStep = params.length - 1;
     else currentStep = 0;
     editStep = currentStep;
     lastPlayedStep = currentStep;
+    resetClockPhase();  // после выбора шага: длина шага зависит от его чётности (свинг)
     extern void ui_markDirty(uint8_t flags);
     ui_markDirty(1);
 }
