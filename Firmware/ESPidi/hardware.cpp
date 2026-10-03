@@ -1,6 +1,7 @@
 #include "hardware.h"
 
 Adafruit_SSD1306 display(OLED_WIDTH, OLED_HEIGHT, &Wire, -1);
+uint8_t oledAddr = OLED_ADDR;  // фактический адрес дисплея (0x3C или запасной 0x3D)
 MidiSerial midiSerial(Serial1);  // Serial1 + завершение обрезанного SysEx (см. midi_serial.h)
 MIDI_CREATE_INSTANCE(MidiSerial, midiSerial, MIDI);
 
@@ -9,6 +10,7 @@ void hw_initDisplay() {
     Wire.setClock(400000);
     if(!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
         display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
+        oledAddr = 0x3D;
     }
     display.clearDisplay();
     display.setTextSize(2);
