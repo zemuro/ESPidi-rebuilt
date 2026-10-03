@@ -115,6 +115,7 @@ void loadAllSettings() {
         settingsParams.start <= 1 &&
         settingsParams.brightness >= 1 && settingsParams.brightness <= 8) {
         settingsApp.params = settingsParams;
+        if (settingsApp.params.ptrnSwitch > 2) settingsApp.params.ptrnSwitch = 1;  // NEXT
         clock_setSourceExternal(settingsApp.params.clockIn == 1);
         clock_setOutEnabled(settingsApp.params.clockOut == 1);
         clock_setTransportEnabled(settingsApp.params.start == 1);
