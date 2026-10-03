@@ -870,15 +870,16 @@ void ui_handleEncoder(int delta) {
   }
 
   if (uiState == UI_STEP_EDIT && currentAppType == APP_MEL_SEQ) {
-    // Учитываем весь накопленный поворот: за один цикл (например, во время перерисовки)
-    // энкодер может набрать несколько щелчков.
+    int8_t dir = (delta > 0) ? 1 : -1;
+    
     if (melSeq.transposeEditActive) {
-      melSeq.adjustTranspose(melSeq.getEditStep(), (int8_t)constrain(delta, -48, 48));
+      melSeq.adjustTranspose(melSeq.getEditStep(), dir);
       return;
     }
     
-    int16_t len = melSeq.params.length;
-    int16_t newStep = ((int16_t)melSeq.getEditStep() + delta % len + len) % len;
+    int16_t newStep = (int16_t)melSeq.getEditStep() + dir;
+    if (newStep < 0) newStep = melSeq.params.length - 1;
+    if (newStep >= melSeq.params.length) newStep = 0;
     melSeq.setEditStepDirect((uint8_t)newStep);
     lastEditStep = newStep;
     lastEditStepValid = true;
@@ -893,9 +894,10 @@ void ui_handleEncoder(int delta) {
     int8_t dir = (delta > 0) ? 1 : -1;
     
     if (songSeq.stepSelectMode) {
-      // Правый столбец: выбор шага (весь накопленный поворот, с переходом по кругу)
-      int16_t len = songSeq.params.length;
-      int16_t newStep = ((int16_t)songSeq.getEditStep() + delta % len + len) % len;
+      // Правый столбец: выбор шага
+      int16_t newStep = (int16_t)songSeq.getEditStep() + dir;
+      if (newStep < 0) newStep = songSeq.params.length - 1;
+      if (newStep >= songSeq.params.length) newStep = 0;
       songSeq.setEditStepDirect((uint8_t)newStep);
       uint8_t newPage = (newStep / STEPS_PER_PAGE) + 1;
       if (newPage != songSeq.params.page && newPage >= 1 && newPage <= 4) {
@@ -954,24 +956,24 @@ void ui_handleEncoder(int delta) {
         switch (activeParam) {
           case STEP_PARAM_PATTERN:
             {
-              int16_t newSlot = (int16_t)sp.patternSlot + delta;
+              int16_t newSlot = (int16_t)sp.patternSlot + dir;
               newSlot = constrain(newSlot, 0, 64);
               songSeq.setPatternSlot(step, (uint8_t)newSlot);
             }
             break;
           case STEP_PARAM_TRANSPOSE:
-            songSeq.adjustTranspose(step, (int8_t)constrain(delta, -48, 48));
+            songSeq.adjustTranspose(step, dir);
             break;
           case STEP_PARAM_PAUSE_LEN:
             {
-              int16_t newLen = (int16_t)sp.pauseLength + delta;
+              int16_t newLen = (int16_t)sp.pauseLength + dir;
               newLen = constrain(newLen, 1, 64);
               songSeq.setPauseLength(step, (uint8_t)newLen);
             }
             break;
           case STEP_PARAM_DIVIDER:
             {
-              int16_t newDiv = (int16_t)sp.divider + delta;
+              int16_t newDiv = (int16_t)sp.divider + dir;
               newDiv = constrain(newDiv, 0, 5);
               songSeq.setDivider(step, (uint8_t)newDiv);
             }
