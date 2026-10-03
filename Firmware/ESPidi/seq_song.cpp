@@ -390,13 +390,7 @@ void SongSequencer::toggle() {
 }
 
 void SongSequencer::tap() {
-    if (clock_isSourceExternal()) return;
-    unsigned long now = millis();
-    if (lastTapTime > 0 && (now - lastTapTime) < TAP_TIMEOUT_MS) {
-        uint16_t newBpm = 60000 / (now - lastTapTime);
-        clock_setBpm(constrain(newBpm, 40, 250));
-    }
-    lastTapTime = now;
+    clock_tap();
 }
 
 void SongSequencer::clear() {
