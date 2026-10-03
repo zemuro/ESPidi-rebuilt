@@ -28,6 +28,8 @@ struct SongPatternBuf {
     uint8_t ccCount[MAX_SEQ_STEPS];
     bool tie[MAX_SEQ_STEPS];
     int8_t transpose[MAX_SEQ_STEPS];
+    uint8_t lengthTicks[MAX_SEQ_STEPS][MAX_POLY];  // записанные длины нот, 0 = по GATE
+    uint8_t gate = 127;  // GATE паттерна (из файла)
     uint8_t length = 0;
     uint8_t slot = 255;  // 255 = буфер пуст
 };
@@ -143,10 +145,12 @@ private:
     uint8_t lastPatternStep = 255;
     uint8_t lastPatternSlotForTie = 255;
     int8_t lastPlayedNotesForTie[SONG_MAX_SOUNDING];  // звучащие ноты (их и гасим при остановке)
+    uint16_t lastPlayedTicksLeft[SONG_MAX_SOUNDING];  // сколько тактов звучать (GATE, длина ноты, Tie)
     uint8_t lastPlayedCountForTie = 0;
     
     void initArrays();
     void stopAllNotes();
+    void tickNoteLengths();
     void playPatternStep(uint8_t step, int8_t transpose);
     uint16_t patternStepTicks(uint8_t divider) const;
     void advanceSongStep();

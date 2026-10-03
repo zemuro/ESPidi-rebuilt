@@ -798,7 +798,6 @@ bool MelodicSequencer::applyPatternFile(uint8_t slot, int status, const MelPatte
     uint8_t savedMode = params.mode;
     uint8_t savedStrum = params.strum;
     uint8_t savedReRec = params.reRec;
-    uint8_t savedGate = params.gate;
     uint8_t savedSwing = params.swing;
     uint8_t savedRandomness = params.randomness;
     uint8_t savedProbability = params.probability;
@@ -808,7 +807,7 @@ bool MelodicSequencer::applyPatternFile(uint8_t slot, int status, const MelPatte
     params.mode = savedMode;
     params.strum = savedStrum;
     params.reRec = savedReRec;
-    params.gate = savedGate;
+    // GATE — свойство паттерна (решение автора): берём из файла, как LENGTH
     params.swing = savedSwing;
     params.randomness = savedRandomness;
     params.probability = savedProbability;

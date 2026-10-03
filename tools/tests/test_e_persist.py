@@ -29,7 +29,8 @@ def test_a3_first_boot_defaults(dut):
 @pytest.mark.parametrize("bpm", [120, 140])
 def test_e1_eeprom_overlap(dut, rec, bpm):
     """SWING/RAND/PROB секвенсора не должны меняться от PTRN и параметров песни. При BPM>127 блок SEQ отбрасывается."""
-    dut.use("mel", MODE=2, CH=5, GATE=70, SWING=0, RAND=0, PROB=0, PTRN=5)
+    # сначала пустой слот: GATE — свойство паттерна, из файла он перекрыл бы проверяемый
+    dut.use("mel", PTRN=60, MODE=2, CH=5, GATE=70, SWING=0, RAND=0, PROB=0)
     dut.use("song", CH=3)
     dut.bpm(bpm)
     _persist(dut)

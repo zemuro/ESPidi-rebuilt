@@ -126,6 +126,8 @@ def test_d7_unsaved_edits_guard_pattern_switch(dut, rec):
     dut.midi.note_off(1, 61)
     assert dut.c.seqdump(0, 1)[0]["n"] == [61]
     assert dut.state()["mel"]["dirty"]
+    slot0 = dut.state()["mel"]["ptrn"]           # слот, оставшийся от предыдущих тестов
+    assert slot0 != 1
 
     dut.c.param("PTRN", 2)                       # первый поворот: только предупреждение
     dut.c.param("PTRN", 2)                       # тот же поворот, следующий щелчок
@@ -137,7 +139,7 @@ def test_d7_unsaved_edits_guard_pattern_switch(dut, rec):
     s = dut.state()
     second = (s["mel"]["ptrn"], s["warn"], dut.c.seqdump(0, 1)[0]["n"])
     rec("(слот, мигает SAVE, шаг 0): после первого поворота / после повторного", (first, second))
-    assert first == (0, 1, [61]), "первый поворот должен только предупредить, правки на месте"
+    assert first == (slot0, 1, [61]), "первый поворот должен только предупредить, правки на месте"
     assert second == (1, 0, [70]), "повторный поворот должен переключить паттерн"
 
 
@@ -239,14 +241,14 @@ def _note_len_ticks(log):
 
 
 @pytest.mark.tid("D12", "P1")
-@pytest.mark.design
-def test_d12_song_ignores_gate(dut, rec):
-    """Один и тот же паттерн при GATE=20: в SEQ нота короткая, в SONG тянется до следующего шага."""
-    dut.install_pattern(0, straight(16, note=60))
+def test_d12_song_uses_pattern_gate(dut, rec):
+    """Решение автора: GATE — свойство паттерна. Паттерн с GATE 64 (1/16 = 6 тиков ⇒ 3 тика)
+    звучит одинаково и в секвенсоре, и в песне (раньше в песне нота тянулась до следующего шага)."""
+    dut.install_pattern(0, straight(16, note=60, gate=64))
     dut.install_song(0, Song(length=2).step(0, slot=1, div=4).step(1, slot=0, pause=64))
     dut.load_pattern(0)
     dut.settings(clkin=True)
-    dut.use("mel", GATE=20)
+    dut.use("mel")
     dut.settle(100, 2)
     dut.play()
     seq_len = _note_len_ticks(dut.stepped(quiet_ms=12).tick(20))
@@ -258,8 +260,26 @@ def test_d12_song_ignores_gate(dut, rec):
     dut.settle(100, 2)
     dut.play()
     song_len = _note_len_ticks(dut.stepped(quiet_ms=12).tick(20))
-    rec("длина ноты, тиков (SEQ при GATE=20 / SONG)", (seq_len, song_len))
-    assert seq_len == song_len, f"SEQ {seq_len} тиков, SONG {song_len} тиков"
+    rec("длина ноты, тиков (SEQ / SONG), GATE паттерна 64", (seq_len, song_len))
+    assert (seq_len, song_len) == (3, 3)
+
+
+@pytest.mark.tid("D21", "P1")
+def test_d21_gate_belongs_to_pattern(dut, rec):
+    """GATE загружается с паттерном; правка GATE — несохранённая правка паттерна."""
+    dut.install_pattern(0, straight(8, gate=30))
+    dut.install_pattern(1, straight(8, gate=100))
+    dut.load_pattern(0)
+    dut.use("mel")
+    g0 = dut.state()["mel"]["gate"]
+    dut.c.param("PTRN", 2)
+    time.sleep(0.2)
+    g1 = dut.state()["mel"]["gate"]
+    dut.c.param("GATE", 50)
+    dirty = dut.state()["mel"]["dirty"]
+    rec("GATE паттерна 1 / 2, правка помечает паттерн", (g0, g1, dirty))
+    assert (g0, g1) == (30, 100)
+    assert dirty, "правка GATE не помечает паттерн как несохранённый"
 
 
 @pytest.mark.tid("D16", "P1")
