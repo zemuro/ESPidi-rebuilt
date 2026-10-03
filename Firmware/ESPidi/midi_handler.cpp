@@ -35,9 +35,10 @@ void saveAllSettings() {
 #endif
     syncAppsBpmFromGlobal();
     uint8_t appByte = (uint8_t)currentAppType;
-    EEPROM.put(0, appByte);
-    EEPROM.put(4, arp.params);
-    EEPROM.put(4 + sizeof(ArpParams), melSeq.params);
+    EEPROM.write(EEPROM_VERSION, EEPROM_LAYOUT_VERSION);
+    EEPROM.put(EEPROM_APP_TYPE, appByte);
+    EEPROM.put(EEPROM_ARP_PARAMS, arp.params);
+    EEPROM.put(EEPROM_SEQ_PARAMS, melSeq.params);
     EEPROM.put(EEPROM_SEQ_DATA, melSeq.getCurrentPattern());
     EEPROM.put(EEPROM_SONG_PARAMS, songSeq.params);
     EEPROM.put(EEPROM_SONG_DATA, songSeq.getCurrentSong());
@@ -50,15 +51,21 @@ void saveAllSettings() {
 
 void loadAllSettings() {
     EEPROM.begin(512);
-    
+
+    // Данные другой раскладки (в т.ч. от прошивок, где блоки перекрывались) не читаем:
+    // помечаем область как пустую в памяти — проверки ниже оставят значения по умолчанию.
+    if (EEPROM.read(EEPROM_VERSION) != EEPROM_LAYOUT_VERSION) {
+        for (int i = 0; i < 64; i++) EEPROM.write(i, 0xFF);
+    }
+
     uint8_t appByte;
-    EEPROM.get(0, appByte);
+    EEPROM.get(EEPROM_APP_TYPE, appByte);
     if (appByte < APP_COUNT) {
         currentAppType = (AppType)appByte;
     }
     
     ArpParams arpParams;
-    EEPROM.get(4, arpParams);
+    EEPROM.get(EEPROM_ARP_PARAMS, arpParams);
     if (arpParams.bpm >= 40 && arpParams.bpm <= 250 &&
         arpParams.channel >= 1 && arpParams.channel <= 16 &&
         arpParams.mode <= 3 &&
@@ -66,10 +73,11 @@ void loadAllSettings() {
         arpParams.division <= 5 &&
         arpParams.gate <= 127) {
         arp.params = arpParams;
+        arp.params.enabled = false;  // после включения арпеджиатор стоит, пока не нажат PLAY
     }
     
     MelSeqParams seqParams;
-    EEPROM.get(4 + sizeof(ArpParams), seqParams);
+    EEPROM.get(EEPROM_SEQ_PARAMS, seqParams);
     if (seqParams.bpm >= 40 && seqParams.bpm <= 250 &&
         seqParams.channel >= 1 && seqParams.channel <= 16 &&
         seqParams.mode <= 3 &&
