@@ -259,11 +259,12 @@ static void cmdState(uint32_t id) {
        arp.getHoldNoteCount(), arp.getPlayingNote());
     jf(s, "\"mel\":{\"en\":%d,\"rec\":%u,\"step\":%u,\"edit\":%u,\"len\":%u,\"mode\":%u,\"strum\":%u,"
           "\"rerec\":%u,\"ch\":%u,\"gate\":%u,\"swing\":%u,\"rand\":%u,\"prob\":%u,\"page\":%u,"
-          "\"ptrn\":%u,\"dirty\":%d,\"stepedit\":%d,\"tredit\":%d},",
+          "\"ptrn\":%u,\"dirty\":%d,\"stepedit\":%d,\"tredit\":%d,\"swap\":%u,\"swpend\":%d,\"last\":%u},",
        melSeq.enabled, melSeq.recording, melSeq.getCurrentStep(), melSeq.getEditStep(), melSeq.params.length,
        melSeq.params.mode, melSeq.params.strum, melSeq.params.reRec, melSeq.params.channel, melSeq.params.gate,
        melSeq.params.swing, melSeq.params.randomness, melSeq.params.probability, melSeq.params.page,
-       melSeq.getCurrentPattern(), melSeq.isDirty(), melSeq.stepEditActive, melSeq.transposeEditActive);
+       melSeq.getCurrentPattern(), melSeq.isDirty(), melSeq.stepEditActive, melSeq.transposeEditActive,
+       settingsApp.params.ptrnSwitch, melSeq.isSwitchPending(), melSeq.getLastPlayedStep());
     jf(s, "\"song\":{\"en\":%d,\"step\":%u,\"edit\":%u,\"len\":%u,\"mode\":%u,\"cycle\":%u,\"ch\":%u,"
           "\"song\":%u,\"dirty\":%d,\"stepedit\":%d,\"sel\":%d},",
        songSeq.enabled, songSeq.getCurrentStep(), songSeq.getEditStep(), songSeq.params.length,

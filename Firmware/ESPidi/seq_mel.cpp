@@ -7,6 +7,32 @@
 #include "clock_engine.h"
 #include "seq_song.h"
 #include "engine.h"
+#include "settings.h"
+
+extern SettingsApp settingsApp;
+
+// Содержимое файла паттерна. Загрузка разделена на чтение файла (readPatternFile — только
+// LittleFS, состояние секвенсора не трогает, можно без блокировки движка) и применение
+// (applyPatternFile — под блокировкой). Логика загрузки прежняя.
+struct MelPatternFile {
+    uint8_t version;
+    MelSeqParams params;
+    int8_t notes[MAX_SEQ_STEPS][MAX_POLY];
+    uint8_t velocities[MAX_SEQ_STEPS][MAX_POLY];
+    uint8_t noteCount[MAX_SEQ_STEPS];
+    uint8_t ccNumber[MAX_SEQ_STEPS][MAX_CC_PER_STEP];
+    uint8_t ccValue[MAX_SEQ_STEPS][MAX_CC_PER_STEP];
+    uint8_t ccCount[MAX_SEQ_STEPS];
+    bool tie[MAX_SEQ_STEPS];
+    int8_t transpose[MAX_SEQ_STEPS];
+    uint8_t channels[MAX_SEQ_STEPS][MAX_POLY];
+    uint8_t lengthTicks[MAX_SEQ_STEPS][MAX_POLY];
+};
+
+enum { PATFILE_OK, PATFILE_MISSING, PATFILE_BAD, PATFILE_NOFS };
+
+static MelPatternFile s_patternFile;  // один на всех: загрузки идут только из основного цикла
+static MelPatternFile s_pendingFile;  // прочитанный паттерн, ждущий своего шага (NEXT/END)
 
 extern SongSequencer songSeq;
 
@@ -174,8 +200,76 @@ void MelodicSequencer::onClockTick() {
     ticksIntoStep++;
     if (ticksIntoStep >= stepTicks()) {
         ticksIntoStep = 0;
+        if (switchPending &&
+            (settingsApp.params.ptrnSwitch != PTRN_SWITCH_END || atPatternStart())) {
+            applyPendingSwitch();
+        }
         doStep();
     }
+}
+
+// Позиция в паттерне для шага с номером globalStep от PLAY: паттерн встаёт туда, где был бы,
+// если бы играл с самого PLAY. При одинаковой длине — следующий шаг, как раньше; короче или
+// длиннее — сильные доли совпадают, за конец позиция не выходит.
+uint8_t MelodicSequencer::positionFor(uint32_t globalStep, int8_t& dir) const {
+    uint8_t len = params.length ? params.length : 1;
+    dir = 1;
+    switch (params.mode) {
+        case 1:  // REV
+            return len - 1 - (globalStep % len);
+        case 2: {  // PEND: туда и обратно, крайние шаги по одному разу
+            if (len <= 1) return 0;
+            uint32_t period = 2u * (len - 1);
+            uint32_t k = globalStep % period;
+            dir = (k < (uint32_t)(len - 1)) ? 1 : -1;
+            return (k < len) ? k : period - k;
+        }
+        case 3:  // RND
+            return random(len);
+        default:  // FWD
+            return globalStep % len;
+    }
+}
+
+// Следующий шаг — начало нового прохода текущего паттерна (для END)
+bool MelodicSequencer::atPatternStart() const {
+    uint8_t len = params.length ? params.length : 1;
+    switch (params.mode) {
+        case 1: return currentStep == len - 1;
+        case 3: return patternSteps % len == 0;
+        default: return currentStep == 0;  // FWD, PEND
+    }
+}
+
+// NEXT / END: на границе шага подменяем паттерн прочитанным заранее
+void MelodicSequencer::applyPendingSwitch() {
+    switchPending = false;
+    applyPatternFile(pendingSlot, pendingStatus, s_pendingFile, true);
+    if (settingsApp.params.ptrnSwitch == PTRN_SWITCH_END) {
+        direction = 1;  // новый паттерн — с начала, как после PLAY
+        currentStep = (params.mode == 1) ? params.length - 1 : 0;
+    } else {
+        int8_t dir;
+        currentStep = positionFor(stepsSincePlay, dir);
+        direction = dir;
+    }
+    patternSteps = 0;
+    freshStart = true;
+}
+
+// NOW: шаг нового паттерна звучит сразу, следующий — по сетке (фаза такта не сбрасывается)
+void MelodicSequencer::switchNow(uint8_t slot, int status, const MelPatternFile& f) {
+    switchPending = false;
+    applyPatternFile(slot, status, f, true);  // гасит ноты старого паттерна
+    int8_t dir;
+    uint8_t pos = positionFor(stepsSincePlay - 1, dir);  // шаг, который звучит сейчас
+    freshStart = true;
+    playStep(pos, false);
+    freshStart = false;
+    lastPlayedStep = pos;
+    currentStep = positionFor(stepsSincePlay, dir);
+    direction = dir;
+    patternSteps = 1;
 }
 
 // Куда писать ноту при записи: в STEP EDIT — в выбранный шаг; во время игры — в шаг,
@@ -206,7 +300,10 @@ void MelodicSequencer::doStep() {
 
     uint8_t prevStep = (currentStep == 0) ? params.length - 1 : currentStep - 1;
 
-    if (noteCount[currentStep] == 0 && tie[currentStep]) {
+    if (freshStart) {
+        activePoolStopAll(activeNotes, MAX_ACTIVE_SEQ_NOTES);  // новый паттерн — с чистого листа
+        playStep(currentStep, doRandomize);
+    } else if (noteCount[currentStep] == 0 && tie[currentStep]) {
         // Пустой связанный шаг: длина звучащих нот уже включает всю цепочку Tie
         // (computeNoteLengthTicks при старте ноты) — повторно не продлеваем.
     } else {
@@ -247,6 +344,10 @@ void MelodicSequencer::doStep() {
         }
     }
 
+    freshStart = false;
+    stepsSincePlay++;
+    patternSteps++;
+
     extern void ui_markDirty(uint8_t flags);
     ui_markDirty(2);
 }
@@ -271,7 +372,7 @@ void MelodicSequencer::playStep(uint8_t step, bool doRandomize) {
     }
 
     uint8_t prevStep = (step == 0) ? params.length - 1 : step - 1;
-    bool hasTieFromPrev = tie[prevStep] && noteCount[prevStep] > 0;
+    bool hasTieFromPrev = !freshStart && tie[prevStep] && noteCount[prevStep] > 0;
 
     for (int i = 0; i < noteCount[step]; i++) {
         if (notes[step][i] < 0 || notes[step][i] >= 128) continue;
@@ -426,6 +527,9 @@ void MelodicSequencer::play() {
     else currentStep = 0;
     editStep = currentStep;
     lastPlayedStep = currentStep;
+    stepsSincePlay = 0;
+    patternSteps = 0;
+    freshStart = false;
     resetClockPhase();  // после выбора шага: длина шага зависит от его чётности (свинг)
     extern void ui_markDirty(uint8_t flags);
     ui_markDirty(1);
@@ -434,6 +538,10 @@ void MelodicSequencer::play() {
 void MelodicSequencer::stop() {
     enabled = false;
     stopAllNotes();
+    if (switchPending) {  // остановили до момента смены — выбранный паттерн становится текущим
+        switchPending = false;
+        applyPatternFile(pendingSlot, pendingStatus, s_pendingFile);
+    }
     resetClockPhase();
     extern void ui_markDirty(uint8_t flags);
     ui_markDirty(1);
@@ -603,27 +711,6 @@ bool MelodicSequencer::saveToFile(uint8_t slot) {
     return true;
 }
 
-// Содержимое файла паттерна. Загрузка разделена на чтение файла (readPatternFile — только
-// LittleFS, состояние секвенсора не трогает, можно без блокировки движка) и применение
-// (applyPatternFile — под блокировкой). Логика загрузки прежняя.
-struct MelPatternFile {
-    uint8_t version;
-    MelSeqParams params;
-    int8_t notes[MAX_SEQ_STEPS][MAX_POLY];
-    uint8_t velocities[MAX_SEQ_STEPS][MAX_POLY];
-    uint8_t noteCount[MAX_SEQ_STEPS];
-    uint8_t ccNumber[MAX_SEQ_STEPS][MAX_CC_PER_STEP];
-    uint8_t ccValue[MAX_SEQ_STEPS][MAX_CC_PER_STEP];
-    uint8_t ccCount[MAX_SEQ_STEPS];
-    bool tie[MAX_SEQ_STEPS];
-    int8_t transpose[MAX_SEQ_STEPS];
-    uint8_t channels[MAX_SEQ_STEPS][MAX_POLY];
-    uint8_t lengthTicks[MAX_SEQ_STEPS][MAX_POLY];
-};
-
-enum { PATFILE_OK, PATFILE_MISSING, PATFILE_BAD, PATFILE_NOFS };
-
-static MelPatternFile s_patternFile;  // один на всех: загрузки идут только из основного цикла
 
 int MelodicSequencer::readPatternFile(uint8_t slot, MelPatternFile& p) {
 #ifdef ESPIDI_TEST
@@ -666,6 +753,7 @@ int MelodicSequencer::readPatternFile(uint8_t slot, MelPatternFile& p) {
 
 bool MelodicSequencer::loadFromFile(uint8_t slot) {
     if (slot >= MAX_PATTERNS) return false;
+    switchPending = false;
     int status = readPatternFile(slot, s_patternFile);
     return applyPatternFile(slot, status, s_patternFile);
 }
@@ -681,12 +769,24 @@ void MelodicSequencer::loadRequestedPattern() {
     int status = readPatternFile(slot, s_patternFile);  // ~12–30 мс, такты идут
     EngineLock lock;
     if (requestedPattern != 255) return;  // пока читали, выбрали другой — загрузим его следующим
-    applyPatternFile(slot, status, s_patternFile);
+    if (!enabled) {
+        switchPending = false;
+        applyPatternFile(slot, status, s_patternFile);
+    } else if (slot == currentPattern) {
+        switchPending = false;  // вернулись к играющему паттерну, пока смена ждала, — отменяем её
+    } else if (settingsApp.params.ptrnSwitch == PTRN_SWITCH_NOW && stepsSincePlay > 0) {
+        switchNow(slot, status, s_patternFile);
+    } else {
+        s_pendingFile = s_patternFile;  // ждёт границы шага (NEXT) или конца паттерна (END)
+        pendingSlot = slot;
+        pendingStatus = status;
+        switchPending = true;
+    }
     extern void ui_markDirty(uint8_t flags);
     ui_markDirty(1);
 }
 
-bool MelodicSequencer::applyPatternFile(uint8_t slot, int status, const MelPatternFile& p) {
+bool MelodicSequencer::applyPatternFile(uint8_t slot, int status, const MelPatternFile& p, bool keepTransport) {
     if (status == PATFILE_NOFS) return false;
     initArrays();
 
@@ -744,8 +844,10 @@ bool MelodicSequencer::applyPatternFile(uint8_t slot, int status, const MelPatte
     recording = 0;
     currentStep = savedStep;
     editStep = currentStep;
-    direction = 1;
-    ticksIntoStep = 0;
+    if (!keepTransport) {  // смена во время игры: позицию и фазу такта задаёт режим смены
+        direction = 1;
+        ticksIntoStep = 0;
+    }
     noteHeld = false;
     stepEditActive = false;
     transposeEditActive = false;

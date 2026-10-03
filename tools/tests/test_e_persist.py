@@ -88,3 +88,16 @@ def test_e5_plain_play_does_not_change_flash(dut, rec, app):
     commits = dut.c.stats()["commits"]
     rec(f"{app}: commit-вызовов / EEPROM изменился", f"{commits} / {before != after}")
     assert before == after, f"байты EEPROM изменились после простого PLAY ({app})"
+
+
+@pytest.mark.tid("E6", "P1")
+def test_e6_swap_setting_persists(dut, rec):
+    """Режим смены паттерна (SWAP, хранится с глобальными настройками) переживает перезагрузку."""
+    dut.use("mel", SWAP=2)              # END
+    _persist(dut)
+    dut.c.reboot()
+    got = dut.state()["mel"]["swap"]
+    rec("SWAP после перезагрузки", got)
+    dut.use("mel", SWAP=1)              # вернуть по умолчанию (NEXT)
+    _persist(dut)
+    assert got == 2

@@ -259,3 +259,85 @@ def test_d15_song_rev_starts_from_last_step(dut):
     dut.play()
     step = dut.state()["song"]["step"]
     assert step == 3, f"REV стартует с шага {step + 1} вместо 4 (SEQ в REV стартует с последнего)"
+
+
+# ---------------------------------------------------------------- смена PTRN во время игры (SWAP)
+# Паттерн A — 16 шагов, ноты 40+шаг; B — 6 шагов, ноты 80+шаг. Смена на втором проходе A, пока звучит
+# 28-й шаг от PLAY (глобальный номер 27). Правило A: позиция нового паттерна = (шагов с PLAY) mod длина,
+# т. е. следующий шаг B — 28 mod 6 = 4. Иные правила дали бы 0 («с начала») или 12 mod 6 = 0
+# («позиция mod длина»). Проверка — по состоянию прошивки (паттерн, сыгранный и следующий шаг).
+
+SWAP = {"NOW": 0, "NEXT": 1, "END": 2}
+
+
+def _swap_setup(dut, mode, seq_mode=0):
+    a = Pattern(length=16)
+    for i in range(16):
+        a.step(i, [40 + i])
+    b = Pattern(length=6)
+    for i in range(6):
+        b.step(i, [80 + i])
+    dut.install_pattern(0, a)
+    dut.install_pattern(1, b)
+    dut.load_pattern(0)
+    dut.settings(clkin=True)
+    dut.use("mel", MODE=seq_mode, SWAP=SWAP[mode])
+    dut.settle(100, 2)
+    dut.play()
+    return dut.stepped(quiet_ms=12)
+
+
+def _mel(dut):
+    m = dut.state()["mel"]
+    return (m["ptrn"], m["swpend"], m["last"], m["step"])
+
+
+@pytest.mark.tid("D17", "P1")
+@pytest.mark.parametrize("mode,expect", [
+    #        сразу после смены   после шага 28        после шага 32
+    ("NOW", [(1, 0, 3, 4), (1, 0, 4, 5), (1, 0, 2, 3)]),
+    ("NEXT", [(0, 1, 11, 12), (1, 0, 4, 5), (1, 0, 2, 3)]),
+    ("END", [(0, 1, 11, 12), (0, 1, 12, 13), (1, 0, 0, 1)]),
+])
+def test_d17_pattern_swap_modes(dut, rec, mode, expect):
+    """SWAP: NOW — шаг B звучит сразу; NEXT — со следующего шага; END — после конца A, с начала B.
+    Кортеж: (слот, смена ждёт, сыгранный шаг, следующий шаг)."""
+    clk = _swap_setup(dut, mode)
+    clk.tick(27 * 6 + 2)                 # звучит шаг 27 от PLAY (позиция 11 в A), 2 такта внутри шага
+    dut.c.param("PTRN", 2)
+    time.sleep(0.15)                     # файл читается в основном цикле
+    got = [_mel(dut)]
+    clk.tick(5)                          # такты 164–168: на 168-м — граница, сыгран шаг 28
+    got.append(_mel(dut))
+    clk.tick(24)                         # сыграны шаги 29–32
+    got.append(_mel(dut))
+    rec("(слот, ждёт, сыгран, следующий)", got)
+    assert got == expect
+
+
+@pytest.mark.tid("D18", "P1")
+def test_d18_pattern_swap_pend_rule_a(dut, rec):
+    """PEND, NEXT: B встаёт туда, где был бы, играя с PLAY: шаг 28 при периоде 10 → позиция 2, ход назад."""
+    clk = _swap_setup(dut, "NEXT", seq_mode=2)
+    clk.tick(27 * 6 + 2)
+    dut.c.param("PTRN", 2)
+    time.sleep(0.15)
+    clk.tick(5)
+    got = _mel(dut)
+    rec("(слот, ждёт, сыгран, следующий)", got)
+    assert got == (1, 0, 2, 1)
+
+
+@pytest.mark.tid("D19", "P1")
+def test_d19_stop_while_swap_pending(dut, rec):
+    """END: остановили, пока смена ждёт конца паттерна, — выбранный паттерн становится текущим."""
+    clk = _swap_setup(dut, "END")
+    clk.tick(3 * 6 + 2)
+    dut.c.param("PTRN", 2)
+    time.sleep(0.15)
+    assert dut.state()["mel"]["swpend"] == 1
+    dut.play()                           # STOP
+    m = dut.state()["mel"]
+    rec("слот / ждёт / шаг 0", (m["ptrn"], m["swpend"], dut.c.seqdump(0, 1)[0]["n"]))
+    assert (m["ptrn"], m["swpend"]) == (1, 0)
+    assert dut.c.seqdump(0, 1)[0]["n"] == [80]

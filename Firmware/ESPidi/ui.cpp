@@ -31,6 +31,7 @@ const char* onOffNames[] = { "OFF", "ON" };
 const char* seqModeNames[] = { "FWD", "REV", "PEND", "RND" };
 const char* cycleNames[] = { "OFF", "ON" };
 const char* pageNames[] = { "1", "2", "3", "4" };
+const char* ptrnSwitchNames[] = { "NOW", "NEXT", "END" };
 
 ParamDef arpLeft[] = {
   { "BPM", &globalBpm, 40, 250, nullptr, 0 },
@@ -62,6 +63,7 @@ static uint8_t saveTrigger = 0;  // фиктивное значение для �
 ParamDef seqRight[] = {
   { "CH", &melSeq.params.channel, 1, 16, nullptr, 0 },
   { "PTRN", &patternSlot, 1, 64, nullptr, 0 },
+  { "SWAP", &settingsApp.params.ptrnSwitch, 0, 2, ptrnSwitchNames, 3 },  // смена PTRN во время игры
   { "SAVE", &saveTrigger, 0, 0, nullptr, 0 },
   { "GATE", &melSeq.params.gate, 0, 127, nullptr, 0 },
   { "SWING", &melSeq.params.swing, 0, 127, nullptr, 0 },
@@ -1200,7 +1202,8 @@ void ui_handleEncoderPress(bool shortPress) {
         }
         if (strcmp(col[realIndex].label, "SAVE") == 0) {
           if (currentAppType == APP_MEL_SEQ) {
-            melSeq.saveToFile(patternSlot - 1);
+            // Пока выбранный паттерн ждёт своего шага, играет (и редактируется) прежний — его и сохраняем
+            melSeq.saveToFile(melSeq.isSwitchPending() ? melSeq.getCurrentPattern() : patternSlot - 1);
           } else if (currentAppType == APP_SONG) {
             songSeq.saveToFile(songSlot - 1);
           }
