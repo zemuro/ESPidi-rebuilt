@@ -116,30 +116,25 @@ def test_c5_passthrough_other_messages(dut, name):
 def test_c11_truncated_sysex_locks_note_input(dut, rec):
     """Обрезанный SysEx (без F7) не должен навсегда отключать приём нот: по спецификации MIDI
     любой статус-байт, кроме реалтайма, завершает незакрытый SysEx.
-    Причина найдена по журналу rxlog: дешёвый USB-MIDI кабель режет SysEx длиннее 3 байт до F0 7D 01,
-    а библиотека MIDI складывает следующие ноты в буфер SysEx и ждёт F7, которого не будет."""
+    Кабель стенда режет SysEx длиннее 3 байт до F0 7D 01 — получаем ровно реальный сценарий:
+    на вход приходит F0 7D 01, затем сразу нота, без F7."""
     dut.c.app(3)
     dut.c.cmd("rxlog", "clear")
-    seen = []
-    for tag, ch, action in (("до SysEx", 1, None),
-                            ("после обрезанного SysEx", 2, lambda: dut.midi.send(0xF0, 0x7D, 0x01))):
-        if action:
-            action()
-            time.sleep(0.3)
-        dut.midi.note_on(ch, 60, 100)
-        time.sleep(0.25)
-        notes = dut.state()["mon"]["notes"]
-        dut.midi.note_off(ch, 60)
-        time.sleep(0.15)
-        seen.append((tag, any(n[0] == ch for n in notes)))
+    dut.midi.send(0xF0, 0x7D, 0x01, 0x02, 0x03, 0xF7)
+    time.sleep(0.3)
+    dut.midi.note_on(2, 60, 100)
+    time.sleep(0.25)
+    notes = dut.state()["mon"]["notes"]
+    dut.midi.note_off(2, 60)
+    time.sleep(0.15)
     raw = dut.c.cmd("rxlog")["hex"]
-    rec("нота видна монитору", seen)
     rec("сырые байты на входе", raw)
     dut.c.reboot()
     dut.settle(100, 2)
-    assert "f07d01" in raw, "стенд: обрезанный SysEx не дошёл до устройства"
-    assert seen[0][1], "стенд: нота не принята даже до SysEx"
-    assert seen[1][1], "после обрезанного SysEx прошивка перестала принимать ноты (до перезагрузки)"
+    i_sx, i_note = raw.find("f07d01"), raw.find("913c64")
+    if i_sx < 0 or i_note < 0 or "f7" in raw[i_sx:i_note]:
+        pytest.skip(f"стенд: нужный сценарий (SysEx без F7, затем нота) не получился, сырые байты {raw}")
+    assert any(n[0] == 2 for n in notes), "после обрезанного SysEx прошивка перестала принимать ноты (до перезагрузки)"
 
 
 def _glyph(scr, x, y):

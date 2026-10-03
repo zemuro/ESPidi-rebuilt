@@ -24,26 +24,10 @@ struct ThScope {
 };
 #define TH_SCOPE(n) ThScope _th_scope_(n)
 
-// Журнал входящих MIDI-байтов: обёртка над Serial1 для библиотеки MIDI.
-// Каждый байт, прочитанный библиотекой, попадает в кольцевой буфер с меткой времени.
+// Журнал входящих MIDI-байтов: MidiSerial (midi_serial.h) передаёт сюда каждый сырой байт с UART.
 void th_logRx(uint8_t b);
 void th_logMidiEvent(char kind, uint32_t value);  // 'S' — SysEx разобран (длина), 'E' — ошибка парсера
 
-class ThSerial {
-public:
-    explicit ThSerial(HardwareSerial& s) : s_(s) {}
-    void begin(unsigned long baud) { s_.begin(baud); }
-    int available() { return s_.available(); }
-    int read() {
-        int c = s_.read();
-        if (c >= 0) th_logRx((uint8_t)c);
-        return c;
-    }
-    size_t write(uint8_t b) { return s_.write(b); }
-private:
-    HardwareSerial& s_;
-};
-extern ThSerial thSerial1;
 
 // Виртуальные кнопки: пока override включён, digitalRead() для пинов кнопок
 // возвращает заданный уровень — реальный код inputs/ui отрабатывает без изменений.
