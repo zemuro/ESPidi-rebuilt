@@ -6,6 +6,7 @@
 static SemaphoreHandle_t s_lock = nullptr;
 static TaskHandle_t s_task = nullptr;
 static esp_timer_handle_t s_timer = nullptr;
+static esp_timer_handle_t s_tickTimer = nullptr;  // одноразовый: точно на момент следующего такта
 
 static const uint32_t ENGINE_PERIOD_US = 500;  // шаг обслуживания: такт опаздывает не больше чем на 0,5 мс
 
@@ -33,6 +34,17 @@ static void engineTask(void*) {
         clock_update();      // внутренние такты по расписанию, контроль потери внешнего Clock
         midiSerial.pump();   // отправка накопленного MIDI (Clock — вне очереди)
         engine_unlock();
+
+        // Такт должен уйти раньше следующего периодического пробуждения — будим задачу точно
+        // к его моменту, а не по сетке 0,5 мс.
+        unsigned long due;
+        if (clock_nextTickDue(&due)) {
+            long dt = (long)(due - micros());
+            if (dt > 0 && dt <= (long)ENGINE_PERIOD_US) {
+                esp_timer_stop(s_tickTimer);
+                esp_timer_start_once(s_tickTimer, (uint64_t)dt);
+            }
+        }
     }
 }
 
@@ -44,5 +56,7 @@ void engine_begin() {
     args.callback = onTimer;
     args.name = "engine_tick";
     esp_timer_create(&args, &s_timer);
+    args.name = "engine_clock";
+    esp_timer_create(&args, &s_tickTimer);
     esp_timer_start_periodic(s_timer, ENGINE_PERIOD_US);
 }

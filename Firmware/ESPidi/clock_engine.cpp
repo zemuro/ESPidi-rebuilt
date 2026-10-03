@@ -257,6 +257,13 @@ void clock_onLocalPlay(bool nowPlaying) {
     }
 }
 
+// Момент следующего внутреннего такта — задача движка заводит на него точный таймер.
+bool clock_nextTickDue(unsigned long* dueUs) {
+    if (sourceExternal || !clockOutPhaseInit) return false;
+    *dueUs = nextClockOutUs;
+    return true;
+}
+
 void clock_update() {
     unsigned long now = micros();
 
