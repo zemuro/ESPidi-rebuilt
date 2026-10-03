@@ -124,7 +124,7 @@ class Console:
             slot["ev"].set()
 
     # ------------------------------------------------------------ команды
-    _IDEMPOTENT = {"ping", "state", "stats", "screen", "eeprom", "seqdump", "songdump", "events_peek"}
+    _IDEMPOTENT = {"ping", "state", "stats", "screen", "eeprom", "seqdump", "songdump", "load", "rxlog"}
 
     def cmd(self, name: str, *args, timeout: float | None = None) -> dict:
         try:

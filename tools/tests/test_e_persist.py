@@ -48,7 +48,12 @@ def test_e3_app_selection_persists(dut):
     _persist(dut)
     dut.c.reboot()
     assert dut.state()["app"] == 0
-    dut.c.app(2)                       # как выбор SONG в меню
+    # Выбор SONG через настоящее меню: долгое нажатие энкодера, поворот, нажатие
+    dut.c.click("enc", long=True)
+    assert dut.state()["ui"] == 2, "меню не открылось"
+    dut.c.enc(2)
+    dut.c.click("enc")
+    assert dut.state()["app"] == 2
     time.sleep(6.0)                    # пройдёт SAVE_DELAY_MS, если сохранение вообще запланировано
     dut.c.reboot()
     app = dut.state()["app"]
