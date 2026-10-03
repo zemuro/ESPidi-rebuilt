@@ -301,14 +301,28 @@ def test_d16_song_last_pattern_step_not_cut(dut, rec):
 
 
 @pytest.mark.tid("D15", "P2")
-@pytest.mark.design
-def test_d15_song_rev_starts_from_last_step(dut):
-    dut.install_song(0, Song(length=4).step(0, slot=1).step(1, slot=1).step(2, slot=1).step(3, slot=1))
+def test_d15_song_rev_plays_backwards(dut, rec):
+    """Решение автора: песня в REV стартует с последнего шага, как секвенсор. Шаги A B C D (ноты
+    60–63), CYCLE=OFF: звучит D C B A, и песня останавливается (раньше — A D C B)."""
+    for i in range(4):
+        dut.install_pattern(i, Pattern(length=1).step(0, [60 + i]))
+    s = Song(length=4)
+    for i in range(4):
+        s.step(i, slot=i + 1, div=5)          # 1/32 = 3 тика на шаг
+    dut.install_song(0, s)
     dut.load_song(0)
-    dut.use("song", MODE=1)
+    dut.settings(clkin=True)
+    dut.use("song", MODE=1, CYCLE=0)
+    dut.settle(100, 2)
     dut.play()
-    step = dut.state()["song"]["step"]
-    assert step == 3, f"REV стартует с шага {step + 1} вместо 4 (SEQ в REV стартует с последнего)"
+    start = dut.state()["song"]["step"]
+    log = dut.stepped(quiet_ms=12).tick(20)
+    order = [m.d1 - 60 for _, m in log.events(lambda m: m.is_note_on(1))]
+    names = "".join("ABCD"[i] for i in order if 0 <= i < 4)
+    rec("стартовый шаг / порядок", (start + 1, names))
+    assert start == 3, f"REV стартует с шага {start + 1} вместо 4"
+    assert names == "DCBA", f"порядок {names}, ожидалось DCBA"
+    assert not dut.state()["song"]["en"], "с CYCLE=OFF песня должна остановиться после A"
 
 
 # ---------------------------------------------------------------- смена PTRN во время игры (SWAP)

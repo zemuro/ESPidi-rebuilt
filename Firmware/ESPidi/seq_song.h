@@ -133,6 +133,7 @@ private:
     bool loadPattern(SongPatternBuf& b, uint8_t slot);
     bool ensureCurrentPattern(uint8_t slot);
     uint8_t slotToPreload() const;
+    uint8_t startStep() const;
     uint8_t plannedNext = 0;          // следующий шаг песни, выбирается при входе в шаг
     int8_t plannedDir = 1;
     bool startPending = false;        // первый такт после PLAY/Start начинает шаг сразу
