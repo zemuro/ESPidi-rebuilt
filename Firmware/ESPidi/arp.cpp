@@ -168,7 +168,6 @@ void Arpeggiator::stop() {
     if (!params.enabled) return;
     params.enabled = false;
     stopSounding();
-    MIDI.sendControlChange(123, 0, params.channel);
     resetClockPhase();
     extern void ui_markDirty(uint8_t flags);
     ui_markDirty(1);
@@ -263,11 +262,12 @@ void Arpeggiator::stopSounding() {
 #ifdef ESPIDI_TEST
     TH_SCOPE("arp.stopSounding");
 #endif
+    // Гасим только свои звучащие ноты: ноту арпеджио и пропущенные клавиши (THRU).
+    // Раньше — NoteOff на все 128 нот + CC 123: ~120 мс без тактов при каждом отпускании аккорда.
     stopStrum();
-    for (int i = 0; i < 128; i++) {
-        MIDI.sendNoteOff(i, 0, params.channel);
+    if (lastNote != 255) {
+        MIDI.sendNoteOff(lastNote, 0, params.channel);
     }
-    MIDI.sendControlChange(123, 0, params.channel);
     playingNote = 255;
     lastNote = 255;
     gateTicksLeft = 0;
