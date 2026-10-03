@@ -59,6 +59,7 @@ public:
     
     void play() override;
     void stop() override;
+    void patternChanged(uint8_t slot);  // файл паттерна перезаписан (1..64, 0 — все)
     void toggle() override;
     void tap() override;
     
@@ -130,6 +131,7 @@ private:
     SongPatternBuf* nxt = &bufB;
     bool loadPattern(SongPatternBuf& b, uint8_t slot);
     bool ensureCurrentPattern(uint8_t slot);
+    uint8_t slotToPreload() const;
     uint8_t plannedNext = 0;          // следующий шаг песни, выбирается при входе в шаг
     int8_t plannedDir = 1;
     bool startPending = false;        // первый такт после PLAY/Start начинает шаг сразу

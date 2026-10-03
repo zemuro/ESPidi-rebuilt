@@ -6,6 +6,7 @@
 #include "hardware.h"
 #include "midi_handler.h"
 #include "clock_engine.h"
+#include "engine.h"
 
 extern MelodicSequencer melSeq;
 
@@ -88,13 +89,41 @@ bool SongSequencer::ensureCurrentPattern(uint8_t slot) {
     return loadPattern(*cur, slot);
 }
 
+// Паттерн, который понадобится следующим и ещё не загружен (0 — ничего не нужно):
+// во время игры — для следующего шага песни, в остановке — для первого, чтобы PLAY
+// не читал файл прямо в такте.
+uint8_t SongSequencer::slotToPreload() const {
+    uint8_t next = enabled ? plannedNext : 0;
+    if (next >= MAX_SONG_STEPS) return 0;
+    uint8_t slot = steps[next].patternSlot;
+    if (slot == 0 || cur->slot == slot || nxt->slot == slot) return 0;
+    return slot;
+}
+
 void SongSequencer::update() {
-    // Заранее загружаем паттерн следующего шага песни — здесь, вне обработки тактов
-    if (!enabled || plannedNext >= MAX_SONG_STEPS) return;
-    uint8_t slot = steps[plannedNext].patternSlot;
-    if (slot != 0 && cur->slot != slot && nxt->slot != slot) {
-        loadPattern(*nxt, slot);
+    // Заранее загружаем паттерн следующего шага песни — здесь, вне обработки тактов.
+    // Вызывается без блокировки движка: файл читается в отдельный буфер (~12 мс), пока такты
+    // идут, а в буфер следующего паттерна копируется уже под блокировкой.
+    static SongPatternBuf loaded;
+    uint8_t slot;
+    {
+        EngineLock lock;
+        slot = slotToPreload();
     }
+    if (slot == 0) return;
+    loaded.slot = 255;  // читать заново: файл могли пересохранить
+    if (!loadPattern(loaded, slot)) return;
+    EngineLock lock;
+    if (slotToPreload() == slot) {
+        *nxt = loaded;
+    }
+}
+
+// Файл паттерна перезаписан (slot как в шагах песни: 1..64; 0 — все): загруженную копию
+// больше не используем, update() перечитает.
+void SongSequencer::patternChanged(uint8_t slot) {
+    if (slot == 0 || bufA.slot == slot) bufA.slot = 255;
+    if (slot == 0 || bufB.slot == slot) bufB.slot = 255;
 }
 
 void SongSequencer::resetClockPhase() {
@@ -342,8 +371,8 @@ void SongSequencer::play() {
     stepsPlayed = 0;
     patternPlayStep = 0;
     patternPlayLength = 0;
-    bufA.slot = 255;  // паттерны могли пересохранить — перечитаем
-    bufB.slot = 255;
+    // Буферы паттернов не сбрасываем: пересохранённый паттерн сбрасывается в patternChanged(),
+    // а паттерн первого шага уже подгружен в остановке (update)
     lastPatternStep = 255;
     lastPatternSlotForTie = 255;
     lastPlayedCountForTie = 0;

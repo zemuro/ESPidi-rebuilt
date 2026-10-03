@@ -5,6 +5,10 @@
 #include "hardware.h"
 #include "midi_handler.h"
 #include "clock_engine.h"
+#include "seq_song.h"
+#include "engine.h"
+
+extern SongSequencer songSeq;
 
 // === Active note pool (shared helpers) ===
 
@@ -595,40 +599,105 @@ bool MelodicSequencer::saveToFile(uint8_t slot) {
     f.close();
     currentPattern = slot;
     patternDirty = false;
+    songSeq.patternChanged(slot + 1);  // в песне слоты паттернов считаются с 1
     return true;
 }
 
-bool MelodicSequencer::loadFromFile(uint8_t slot) {
+// Содержимое файла паттерна. Загрузка разделена на чтение файла (readPatternFile — только
+// LittleFS, состояние секвенсора не трогает, можно без блокировки движка) и применение
+// (applyPatternFile — под блокировкой). Логика загрузки прежняя.
+struct MelPatternFile {
+    uint8_t version;
+    MelSeqParams params;
+    int8_t notes[MAX_SEQ_STEPS][MAX_POLY];
+    uint8_t velocities[MAX_SEQ_STEPS][MAX_POLY];
+    uint8_t noteCount[MAX_SEQ_STEPS];
+    uint8_t ccNumber[MAX_SEQ_STEPS][MAX_CC_PER_STEP];
+    uint8_t ccValue[MAX_SEQ_STEPS][MAX_CC_PER_STEP];
+    uint8_t ccCount[MAX_SEQ_STEPS];
+    bool tie[MAX_SEQ_STEPS];
+    int8_t transpose[MAX_SEQ_STEPS];
+    uint8_t channels[MAX_SEQ_STEPS][MAX_POLY];
+    uint8_t lengthTicks[MAX_SEQ_STEPS][MAX_POLY];
+};
+
+enum { PATFILE_OK, PATFILE_MISSING, PATFILE_BAD, PATFILE_NOFS };
+
+static MelPatternFile s_patternFile;  // один на всех: загрузки идут только из основного цикла
+
+int MelodicSequencer::readPatternFile(uint8_t slot, MelPatternFile& p) {
 #ifdef ESPIDI_TEST
     TH_SCOPE("mel.load");
 #endif
-    if (slot >= MAX_PATTERNS) return false;
-    if (!LittleFS.begin(true)) return false;
+    if (!LittleFS.begin(true)) return PATFILE_NOFS;
 
     char path[32];
     snprintf(path, sizeof(path), PATTERN_DIR "/pat_%02d.bin", slot);
+    if (!LittleFS.exists(path)) return PATFILE_MISSING;
+
+    File f = LittleFS.open(path, "r");
+    if (!f) return PATFILE_BAD;
+
+    char magic[4];
+    p.version = 0;
+    f.read((uint8_t*)magic, 4);
+    f.read(&p.version, 1);
+    if (magic[0] != 'M' || magic[1] != 'S' || magic[2] != 'E' || magic[3] != 'Q') {
+        f.close();
+        return PATFILE_BAD;
+    }
+
+    f.read((uint8_t*)&p.params, sizeof(MelSeqParams));
+    f.read((uint8_t*)p.notes, sizeof(p.notes));
+    f.read((uint8_t*)p.velocities, sizeof(p.velocities));
+    f.read((uint8_t*)p.noteCount, sizeof(p.noteCount));
+    f.read((uint8_t*)p.ccNumber, sizeof(p.ccNumber));
+    f.read((uint8_t*)p.ccValue, sizeof(p.ccValue));
+    f.read((uint8_t*)p.ccCount, sizeof(p.ccCount));
+    f.read((uint8_t*)p.tie, sizeof(p.tie));
+    f.read((uint8_t*)p.transpose, sizeof(p.transpose));
+    if (p.version >= 2) {
+        f.read((uint8_t*)p.channels, sizeof(p.channels));
+        f.read((uint8_t*)p.lengthTicks, sizeof(p.lengthTicks));
+    }
+    f.close();
+    return PATFILE_OK;
+}
+
+bool MelodicSequencer::loadFromFile(uint8_t slot) {
+    if (slot >= MAX_PATTERNS) return false;
+    int status = readPatternFile(slot, s_patternFile);
+    return applyPatternFile(slot, status, s_patternFile);
+}
+
+void MelodicSequencer::loadRequestedPattern() {
+    uint8_t slot;
+    {
+        EngineLock lock;
+        slot = requestedPattern;
+        requestedPattern = 255;
+    }
+    if (slot >= MAX_PATTERNS) return;
+    int status = readPatternFile(slot, s_patternFile);  // ~12–30 мс, такты идут
+    EngineLock lock;
+    if (requestedPattern != 255) return;  // пока читали, выбрали другой — загрузим его следующим
+    applyPatternFile(slot, status, s_patternFile);
+    extern void ui_markDirty(uint8_t flags);
+    ui_markDirty(1);
+}
+
+bool MelodicSequencer::applyPatternFile(uint8_t slot, int status, const MelPatternFile& p) {
+    if (status == PATFILE_NOFS) return false;
     initArrays();
 
-    if (!LittleFS.exists(path)) {
+    if (status == PATFILE_MISSING) {
         currentPattern = slot;
         patternDirty = false;
         return true;
     }
+    if (status != PATFILE_OK) return false;
 
-    File f = LittleFS.open(path, "r");
-    if (!f) return false;
-
-    char magic[4];
-    uint8_t version = 0;
-    f.read((uint8_t*)magic, 4);
-    f.read(&version, 1);
-    if (magic[0] != 'M' || magic[1] != 'S' || magic[2] != 'E' || magic[3] != 'Q') {
-        f.close();
-        return false;
-    }
-
-    MelSeqParams loadedParams;
-    f.read((uint8_t*)&loadedParams, sizeof(MelSeqParams));
+    MelSeqParams loadedParams = p.params;
 
     uint8_t savedBpm = params.bpm;
     uint8_t savedChannel = params.channel;
@@ -650,18 +719,18 @@ bool MelodicSequencer::loadFromFile(uint8_t slot) {
     params.randomness = savedRandomness;
     params.probability = savedProbability;
 
-    f.read((uint8_t*)notes, sizeof(notes));
-    f.read((uint8_t*)velocities, sizeof(velocities));
-    f.read((uint8_t*)noteCount, sizeof(noteCount));
-    f.read((uint8_t*)ccNumber, sizeof(ccNumber));
-    f.read((uint8_t*)ccValue, sizeof(ccValue));
-    f.read((uint8_t*)ccCount, sizeof(ccCount));
-    f.read((uint8_t*)tie, sizeof(tie));
-    f.read((uint8_t*)transpose, sizeof(transpose));
+    memcpy(notes, p.notes, sizeof(notes));
+    memcpy(velocities, p.velocities, sizeof(velocities));
+    memcpy(noteCount, p.noteCount, sizeof(noteCount));
+    memcpy(ccNumber, p.ccNumber, sizeof(ccNumber));
+    memcpy(ccValue, p.ccValue, sizeof(ccValue));
+    memcpy(ccCount, p.ccCount, sizeof(ccCount));
+    memcpy(tie, p.tie, sizeof(tie));
+    memcpy(transpose, p.transpose, sizeof(transpose));
 
-    if (version >= 2) {
-        f.read((uint8_t*)channels, sizeof(channels));
-        f.read((uint8_t*)lengthTicks, sizeof(lengthTicks));
+    if (p.version >= 2) {
+        memcpy(channels, p.channels, sizeof(channels));
+        memcpy(lengthTicks, p.lengthTicks, sizeof(lengthTicks));
     } else {
         for (int s = 0; s < MAX_SEQ_STEPS; s++) {
             for (int n = 0; n < MAX_POLY; n++) {
@@ -670,8 +739,6 @@ bool MelodicSequencer::loadFromFile(uint8_t slot) {
             }
         }
     }
-
-    f.close();
 
     uint8_t savedStep = currentStep;
     recording = 0;

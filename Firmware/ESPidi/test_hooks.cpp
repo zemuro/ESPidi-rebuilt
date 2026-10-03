@@ -20,6 +20,7 @@
 #include "clock_engine.h"
 #include "inputs.h"
 #include "ui.h"
+#include "engine.h"
 
 extern Arpeggiator arp;
 extern MelodicSequencer melSeq;
@@ -71,13 +72,19 @@ static Hist s_loop, s_gap, s_late;
 static uint32_t s_commits = 0;
 static uint32_t s_lastLoop = 0, s_lastSvc = 0;
 
+// Метрики пишут две задачи (движок и основной цикл) — правки под короткой критической секцией.
+static portMUX_TYPE s_statMux = portMUX_INITIALIZER_UNLOCKED;
+
 static void evPush(const char* kind, uint32_t v) {
+    portENTER_CRITICAL(&s_statMux);
     s_ev[s_evHead] = {micros(), kind, v};
     s_evHead = (s_evHead + 1) % 64;
     if (s_evCount < 64) s_evCount++;
+    portEXIT_CRITICAL(&s_statMux);
 }
 
 static void statsReset() {
+    portENTER_CRITICAL(&s_statMux);
     s_loop = Hist();
     s_gap = Hist();
     s_late = Hist();
@@ -86,6 +93,7 @@ static void statsReset() {
     s_lastSvc = 0;
     s_evHead = s_evCount = 0;
     for (auto& s : s_scopes) s = ScopeStat();
+    portEXIT_CRITICAL(&s_statMux);
 }
 
 void th_loopBegin() {
@@ -154,17 +162,20 @@ static void onSysEx(byte* data, unsigned size) {
 static void onMidiError(int8_t err) { th_logMidiEvent('E', (uint8_t)err); }
 
 void th_scopeRecord(const char* name, uint32_t us) {
+    portENTER_CRITICAL(&s_statMux);
     ScopeStat* slot = nullptr;
     for (auto& s : s_scopes) {
         if (s.name == name || (s.name && strcmp(s.name, name) == 0)) { slot = &s; break; }
         if (!s.name && !slot) slot = &s;
     }
-    if (!slot) return;
-    if (!slot->name) slot->name = name;
-    slot->n++;
-    slot->sum += us;
-    if (us > slot->max) slot->max = us;
-    if (us > 5000) evPush(name, us);
+    if (slot) {
+        if (!slot->name) slot->name = name;
+        slot->n++;
+        slot->sum += us;
+        if (us > slot->max) slot->max = us;
+    }
+    portEXIT_CRITICAL(&s_statMux);
+    if (slot && us > 5000) evPush(name, us);
 }
 
 // ---------------------------------------------------------------- виртуальные кнопки
@@ -196,16 +207,24 @@ static void jf(String& s, const char* fmt, ...) {
     s += buf;
 }
 
+// Команды выполняются под блокировкой движка, а ответ уходит в USB уже после неё (sendReplies):
+// передача пары килобайт занимает десятки миллисекунд и не должна задерживать такты.
+static String s_out;
+
 static void reply(uint32_t id, const String& json) {
-    String out;
-    out.reserve(json.length() + 16);
-    out += '@';
-    out += String(id);
-    out += ' ';
-    out += json;
-    out += '\n';
-    Serial.print(out);
+    s_out.reserve(s_out.length() + json.length() + 16);
+    s_out += '@';
+    s_out += String(id);
+    s_out += ' ';
+    s_out += json;
+    s_out += '\n';
+}
+
+static void sendReplies() {
+    if (!s_out.length()) return;
+    Serial.print(s_out);
     Serial.flush();  // HWCDC держит неполный 64-байтный пакет в FIFO — выталкиваем
+    s_out = String();
 }
 
 static void replyErr(uint32_t id, const char* msg) {
@@ -439,15 +458,18 @@ static void cmdFs(uint32_t id, char* a1, char* a2, char* a3, char* a4) {
             f.write((uint8_t)strtol(h, nullptr, 16));
         }
         f.close();
+        songSeq.patternChanged(0);
         return reply(id, "{\"ok\":1}");
     }
     if (!strcmp(a1, "rm") && a2) {
         LittleFS.remove(a2);
+        songSeq.patternChanged(0);
         return reply(id, "{\"ok\":1}");
     }
     if (!strcmp(a1, "format")) {
         LittleFS.format();
         LittleFS.begin(true);
+        songSeq.patternChanged(0);
         return reply(id, "{\"ok\":1}");
     }
     replyErr(id, "fs: unknown");
@@ -632,7 +654,7 @@ static void execLine(char* line) {
             LittleFS.format();
         }
         reply(id, "{\"ok\":1}");
-        Serial.flush();
+        sendReplies();
         delay(150);
         ESP.restart();
         return;
@@ -659,6 +681,7 @@ void th_poll() {
     }
     if (s_floodUntil) {
         if ((int32_t)(millis() - s_floodUntil) < 0) {
+            EngineLock lock;
             for (int i = 0; i < 8; i++) MIDI.sendRealTime(midi::Clock);
         } else {
             s_floodUntil = 0;
@@ -671,7 +694,11 @@ void th_poll() {
         if (c == '\n' || c == '\r') {
             if (len) {
                 line[len] = 0;
-                execLine(line);
+                {
+                    EngineLock lock;
+                    execLine(line);
+                }
+                sendReplies();
                 len = 0;
             }
         } else if (len < sizeof(line) - 1) {
