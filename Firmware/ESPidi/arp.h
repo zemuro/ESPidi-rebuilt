@@ -31,6 +31,7 @@ public:
     bool handleNoteOn(uint8_t note, uint8_t velocity, uint8_t channel) override;
     bool handleNoteOff(uint8_t note, uint8_t channel) override;
     bool isEnabled() override { return params.enabled; }
+    bool passesThru() override { return !params.enabled || params.strum == 1; }  // остановлен или THRU
     
     void play() override;
     void stop() override;
