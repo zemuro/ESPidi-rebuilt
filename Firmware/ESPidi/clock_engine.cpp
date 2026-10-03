@@ -247,6 +247,10 @@ void clock_update() {
             bpmNeedFirstShow = true;
             windowTicks = 0;
             windowStartUs = 0;
+            // Длина нот считается входящими тиками: без Clock звучащие ноты не погаснут никогда.
+            if (arp.isEnabled()) arp.silence();
+            if (melSeq.isEnabled()) melSeq.silence();
+            if (songSeq.isEnabled()) songSeq.silence();
             ui_markDirty(4);
         }
     }

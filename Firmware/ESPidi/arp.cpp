@@ -113,6 +113,11 @@ bool Arpeggiator::handleNoteOn(uint8_t note, uint8_t velocity, uint8_t channel) 
         if (arpCount > 0) {
             currentStep = 0;
             ticksIntoStep = 0;
+            if (lastNote != 255) {
+                // Ретриггер: сначала гасим звучащую ноту арпеджио, иначе синтезатор получит
+                // второй NoteOn без NoteOff (на полифоническом — зависший голос).
+                MIDI.sendNoteOff(lastNote, 0, params.channel);
+            }
             MIDI.sendNoteOn(arpNotes[0], arpVel[0], params.channel);
             lastNote = arpNotes[0];
             playingNote = arpNotes[0] % 12;
@@ -131,7 +136,9 @@ bool Arpeggiator::handleNoteOn(uint8_t note, uint8_t velocity, uint8_t channel) 
 bool Arpeggiator::handleNoteOff(uint8_t note, uint8_t channel) {
     if (params.hold) {
         noteOff(note);
-        return true;
+        // HOLD: набор нот остаётся в арпеджио. NoteOff забираем, только пока арпеджиатор играет;
+        // когда он остановлен, NoteOn прошёл на выход насквозь — и NoteOff должен пройти так же.
+        return params.enabled;
     }
     
     noteOff(note);

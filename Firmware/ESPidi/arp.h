@@ -36,6 +36,7 @@ public:
     void stop() override;
     void toggle() override;
     void tap() override;
+    void silence() override { stopSounding(); }
     
     void rebuildNotes() { buildNotes(); }
     void enableHold();
