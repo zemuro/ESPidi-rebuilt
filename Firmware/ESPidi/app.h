@@ -26,7 +26,6 @@ struct App {
         else play();
     }
     virtual void tap() {}
-    virtual void silence() {}  // погасить звучащие ноты, не меняя состояния PLAY/STOP
     virtual bool handleNoteOn(uint8_t note, uint8_t velocity, uint8_t channel) { (void)channel; return false; }
     virtual bool handleNoteOff(uint8_t note, uint8_t channel) { (void)channel; return false; }
     virtual bool handleCC(uint8_t number, uint8_t value, uint8_t channel) { (void)channel; return false; }

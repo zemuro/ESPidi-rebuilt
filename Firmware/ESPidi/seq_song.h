@@ -45,11 +45,6 @@ public:
     void stop() override;
     void toggle() override;
     void tap() override;
-    void silence() override {
-        uint8_t slot = patternBufferSlot;   // stopAllNotes() сбрасывает буфер паттерна —
-        stopAllNotes();                     // перечитываем его, чтобы шаг песни продолжил звучать
-        if (slot != 255) loadPatternToBuffer(slot);
-    }
     
     void clear();
     void clearStep(uint8_t step);
