@@ -93,8 +93,8 @@ static uint8_t saveTrigger = 0;  // фиктивное значение для �
 ParamDef seqRight[] = {
   { "CH", &melSeq.params.channel, 1, 16, nullptr, 0 },
   { "PTRN", &patternSlot, 1, 64, nullptr, 0 },
+  { "SAVE", &saveTrigger, 0, 0, nullptr, 0 },  // сразу под PTRN: видно, когда SAVE мигает
   { "SWAP", &settingsApp.params.ptrnSwitch, 0, 2, ptrnSwitchNames, 3 },  // смена PTRN во время игры
-  { "SAVE", &saveTrigger, 0, 0, nullptr, 0 },
   { "GATE", &melSeq.params.gate, 0, 127, nullptr, 0 },
   { "SWING", &melSeq.params.swing, 0, 127, nullptr, 0 },
   { "RAND", &melSeq.params.randomness, 0, 127, nullptr, 0 },
