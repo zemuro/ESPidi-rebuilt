@@ -154,11 +154,6 @@ void th_logMidiEvent(char kind, uint32_t value) {
     if (s_mevCount < 32) s_mevCount++;
 }
 
-static void onSysEx(byte* data, unsigned size) {
-    (void)data;
-    th_logMidiEvent('S', size);
-}
-
 static void onMidiError(int8_t err) { th_logMidiEvent('E', (uint8_t)err); }
 
 void th_scopeRecord(const char* name, uint32_t us) {
@@ -675,8 +670,7 @@ void th_setup() {
 
 void th_poll() {
     static bool handlersSet = false;
-    if (!handlersSet) {  // после midi_setup(): прошивка эти два обработчика не использует
-        MIDI.setHandleSystemExclusive(onSysEx);
+    if (!handlersSet) {  // после midi_setup(): прошивка этот обработчик не использует
         MIDI.setHandleError(onMidiError);
         handlersSet = true;
     }

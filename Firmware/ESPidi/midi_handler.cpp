@@ -164,6 +164,62 @@ void midi_setup() {
     MIDI.setHandleStart(midi_handleStart);
     MIDI.setHandleStop(midi_handleStop);
     MIDI.setHandleContinue(midi_handleContinue);
+
+    MIDI.setHandlePitchBend(midi_handlePitchBend);
+    MIDI.setHandleProgramChange(midi_handleProgramChange);
+    MIDI.setHandleAfterTouchChannel(midi_handleAfterTouchChannel);
+    MIDI.setHandleAfterTouchPoly(midi_handleAfterTouchPoly);
+    MIDI.setHandleSystemExclusive(midi_handleSysEx);
+    MIDI.setHandleTimeCodeQuarterFrame(midi_handleTimeCode);
+    MIDI.setHandleSongPosition(midi_handleSongPosition);
+    MIDI.setHandleSongSelect(midi_handleSongSelect);
+    MIDI.setHandleTuneRequest(midi_handleTuneRequest);
+}
+
+// Прочие сообщения проходят на выход тогда же, когда проходят ноты: в MONITOR — никогда,
+// в остальных приложениях — по их правилу THRU (App::passesThru).
+static bool thruOpen() {
+    if (currentAppType == APP_MONITOR) return false;
+    return currentApp && currentApp->passesThru();
+}
+
+void midi_handlePitchBend(byte channel, int bend) {
+    if (thruOpen()) MIDI.sendPitchBend(bend, channel);
+}
+
+void midi_handleProgramChange(byte channel, byte number) {
+    if (thruOpen()) MIDI.sendProgramChange(number, channel);
+}
+
+void midi_handleAfterTouchChannel(byte channel, byte pressure) {
+    if (thruOpen()) MIDI.sendAfterTouch(pressure, channel);
+}
+
+void midi_handleAfterTouchPoly(byte channel, byte note, byte pressure) {
+    if (thruOpen()) MIDI.sendAfterTouch(note, pressure, channel);
+}
+
+void midi_handleSysEx(byte* data, unsigned size) {
+#ifdef ESPIDI_TEST
+    th_logMidiEvent('S', size);
+#endif
+    if (thruOpen()) MIDI.sendSysEx(size, data, true);  // data уже содержит F0 … F7
+}
+
+void midi_handleTimeCode(byte data) {
+    if (thruOpen()) MIDI.sendTimeCodeQuarterFrame(data);
+}
+
+void midi_handleSongPosition(unsigned beats) {
+    if (thruOpen()) MIDI.sendSongPosition(beats);
+}
+
+void midi_handleSongSelect(byte number) {
+    if (thruOpen()) MIDI.sendSongSelect(number);
+}
+
+void midi_handleTuneRequest() {
+    if (thruOpen()) MIDI.sendTuneRequest();
 }
 
 void midi_handleNoteOn(byte channel, byte note, byte velocity) {

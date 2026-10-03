@@ -110,10 +110,10 @@ _PASS = {
 
 
 @pytest.mark.tid("C5", "P1")
-@pytest.mark.design
 @pytest.mark.parametrize("name", list(_PASS))
 def test_c5_passthrough_other_messages(dut, name):
-    """ARP остановлен: прозрачность канальных сообщений, не связанных с нотами/CC."""
+    """ARP остановлен (ноты проходят насквозь): Pitch Bend, Program Change, Aftertouch и SysEx
+    тоже проходят. Решение автора: прочие сообщения проходят вместе с нотами."""
     dut.midi.clear()
     _PASS[name](dut.midi)
     dut.midi.wait_quiet(80, 1.0)
@@ -220,3 +220,43 @@ def test_c10_seq_rec_strum_off_swallows_note_off(dut):
     dut.midi.wait_quiet(60, 1.0)
     hung = analysis.hanging_notes(dut.midi.since(0))
     assert not hung, f"зависшие ноты на выходе: {sorted(hung)}"
+
+
+# Решение автора: прочие сообщения проходят на выход тогда же, когда проходят ноты.
+_THRU_CASES = [
+    # (приложение, параметры, играет, ноты проходят)
+    ("arp", dict(THRU=0), False, True),    # остановленный арпеджиатор пропускает насквозь
+    ("arp", dict(THRU=0), True, False),
+    ("arp", dict(THRU=1), True, True),
+    ("mel", dict(THRU=0), False, False),
+    ("mel", dict(THRU=1), False, True),
+    ("song", dict(), False, True),
+    ("mon", dict(), False, False),
+]
+
+
+@pytest.mark.tid("C13", "P1")
+@pytest.mark.parametrize("app,params,playing,passes", _THRU_CASES,
+                         ids=[f"{a}-{'play' if pl else 'stop'}-{'pass' if ps else 'block'}-{i}"
+                              for i, (a, _, pl, ps) in enumerate(_THRU_CASES)])
+def test_c13_other_messages_follow_notes(dut, rec, app, params, playing, passes):
+    """Pitch Bend и Program Change проходят на выход ровно тогда, когда проходит нота."""
+    dut.use(app, **params)
+    if playing:
+        dut.play()
+    dut.settle(80, 2)
+    dut.midi.clear()
+    dut.midi.note_on(2, 60, 100)         # канал 2: арпеджиатор сам играет на канале 1
+    dut.midi.wait_quiet(60, 1.0)
+    dut.midi.note_off(2, 60)
+    dut.midi.pitchbend(2, 8192 + 300)
+    dut.midi.program(2, 7)
+    dut.midi.wait_quiet(80, 1.0)
+    out = dut.midi.since(0)
+    if playing:
+        dut.play()
+    note = any(m.kind == "note_on" and m.ch == 2 and m.d1 == 60 for m in out)
+    other = {m.kind for m in out if m.ch == 2} & {"pitchbend", "program"}
+    rec("нота / прочие на выходе", (note, sorted(other)))
+    assert note == passes, f"нота {'не прошла' if passes else 'прошла'} — сценарий теста не тот"
+    assert (other == {"pitchbend", "program"}) if passes else not other,         f"прочие сообщения: {sorted(other)}, ожидалось {'оба' if passes else 'ни одного'}"

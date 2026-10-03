@@ -56,6 +56,7 @@ public:
     bool handleNoteOff(uint8_t note, uint8_t channel) override;
     bool handleCC(uint8_t number, uint8_t value, uint8_t channel) override;
     bool isEnabled() override { return enabled; }
+    bool passesThru() override { return params.strum == 1; }  // THRU
     
     void play() override;
     void stop() override;
