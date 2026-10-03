@@ -245,6 +245,46 @@ static void drawColumn(ParamDef* params, int count, int colX, bool isLeft) {
   }
 }
 
+// Отправка кадра на дисплей: только изменившиеся страницы (полосы по 8 строк пикселей).
+// Обычно меняется одна строка — бегущий шаг или значение параметра, — и вместо 512 байт
+// по I²C уходит 128, т. е. основной цикл занят в несколько раз меньше. Шина остаётся на 400 кГц.
+static uint8_t oledShadow[OLED_WIDTH * OLED_HEIGHT / 8];
+static bool oledShadowValid = false;
+
+static void ui_flush() {
+#ifdef ESPIDI_TEST
+  TH_SCOPE("ui.flush");
+#endif
+  const uint8_t* buf = display.getBuffer();
+  Wire.setClock(400000);  // Adafruit после своих команд возвращает шину на 100 кГц
+  for (int page = 0; page < OLED_HEIGHT / 8; page++) {
+    const uint8_t* row = buf + page * OLED_WIDTH;
+    uint8_t* shadow = oledShadow + page * OLED_WIDTH;
+    if (oledShadowValid && memcmp(row, shadow, OLED_WIDTH) == 0) continue;
+    // Окно записи: одна страница, все столбцы (горизонтальная адресация задана при инициализации)
+    Wire.beginTransmission(oledAddr);
+    Wire.write((uint8_t)0x00);  // далее — команды
+    Wire.write((uint8_t)SSD1306_PAGEADDR);
+    Wire.write((uint8_t)page);
+    Wire.write((uint8_t)page);
+    Wire.write((uint8_t)SSD1306_COLUMNADDR);
+    Wire.write((uint8_t)0);
+    Wire.write((uint8_t)(OLED_WIDTH - 1));
+    Wire.endTransmission();
+    for (int i = 0; i < OLED_WIDTH; i += 32) {
+      Wire.beginTransmission(oledAddr);
+      Wire.write((uint8_t)0x40);  // далее — данные
+      Wire.write(row + i, 32);
+      Wire.endTransmission();
+    }
+    memcpy(shadow, row, OLED_WIDTH);
+#ifdef ESPIDI_TEST
+    th_scopeRecord("ui.page", 0);  // счётчик отправленных страниц (n в stats)
+#endif
+  }
+  oledShadowValid = true;
+}
+
 void ui_drawScreen() {
   // Нечего обновлять — не трогаем I2C (критично для MIDI clock)
   if (uiDirty == 0) {
@@ -280,7 +320,7 @@ void ui_drawScreen() {
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(5, 5);
     display.print(appNames[menuPosition]);
-    display.display();
+    ui_flush();
     MIDI.read();
     return;
   }
@@ -298,7 +338,7 @@ void ui_drawScreen() {
     display.println("TAP+L_R: step edit");
     display.println("TAP+PLAY: rec mode");
     display.println("LONG PLAY: clear");
-    display.display();
+    ui_flush();
     MIDI.read();
     return;
   }
@@ -441,7 +481,7 @@ void ui_drawScreen() {
       }
     }
 
-    display.display();
+    ui_flush();
     MIDI.read();
     return;
   }
@@ -627,7 +667,7 @@ void ui_drawScreen() {
       }
     }
     
-    display.display();
+    ui_flush();
     MIDI.read();
     return;
   }
@@ -858,7 +898,7 @@ void ui_drawScreen() {
     }
   }
 
-  display.display();
+  ui_flush();
   MIDI.read();
 }
 
