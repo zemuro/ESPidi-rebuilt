@@ -171,15 +171,27 @@ def test_b7_pattern_switch_while_playing(dut, noise_floor, rec, run_s):
 
 
 @pytest.mark.tid("B8", "P0")
-def test_b8_autosave_stall(dut, noise_floor, rec):
-    """Через 5 с после правки — EEPROM.commit() в основном цикле."""
+def test_b8_no_autosave_while_playing(dut, noise_floor, rec):
+    """Решение: пока что-то играет, настройки во флеш не пишутся (запись останавливает цикл
+    на 3–17 мс); сохранение — после STOP."""
+    dut.use("arp", DIV=4)
     m0 = _begin(dut)
+    dut.play()
+    for n in (60, 64, 67):
+        dut.midi.note_on(1, n, 100)
     dut.c.param("GATE", 90)                 # → scheduleGlobalSave()
-    time.sleep(thresholds.SHORT_RUN_S * 0.7)  # > SAVE_DELAY_MS (5 с)
+    time.sleep(7.0)                         # > SAVE_DELAY_MS (5 с)
     msgs = dut.midi.since(m0)
     st, fails = _verdict(dut, msgs, noise_floor, rec, "autosave")
-    assert st["commits"] >= 1, "автосохранение не сработало за отведённое время"
-    rec("save.eeprom (макс, мкс)", st["scopes"].get("save.eeprom", {}).get("max"))
+    commits_playing = st["commits"]
+    dut.play()                              # STOP
+    for n in (60, 64, 67):
+        dut.midi.note_off(1, n)
+    time.sleep(1.5)
+    commits_after = dut.c.stats()["commits"]
+    rec("EEPROM commit во время игры / после STOP", f"{commits_playing} / {commits_after}")
+    assert commits_playing == 0, f"во время игры было {commits_playing} записей во флеш"
+    assert commits_after >= 1, "после STOP настройки не сохранились"
     assert not fails, "; ".join(fails)
 
 

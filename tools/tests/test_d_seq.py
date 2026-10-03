@@ -21,7 +21,7 @@ def test_d1_record_lands_on_sounding_step(dut, rec):
     dut.play()
     dut.rec()
     clk = dut.stepped()
-    clk.tick(8)                          # шаг 0 стартует на 6-м тике, playhead уже на шаге 1
+    clk.tick(3)                          # шаг 0 звучит с первого такта после PLAY (такты 0–5)
     dut.midi.note_on(1, 60, 100)
     dut.midi.wait_quiet(60, 1.0)
     dut.midi.note_off(1, 60)
@@ -230,6 +230,24 @@ def test_d12_song_ignores_gate(dut, rec):
     song_len = _note_len_ticks(dut.stepped(quiet_ms=12).tick(20))
     rec("длина ноты, тиков (SEQ при GATE=20 / SONG)", (seq_len, song_len))
     assert seq_len == song_len, f"SEQ {seq_len} тиков, SONG {song_len} тиков"
+
+
+@pytest.mark.tid("D16", "P1")
+def test_d16_song_last_pattern_step_not_cut(dut, rec):
+    """В песне нота на последнем шаге паттерна должна звучать, а не выключаться в тот же тик."""
+    dut.install_pattern(0, Pattern(length=4).step(3, [64]))
+    dut.install_song(0, Song(length=2).step(0, slot=1, div=4).step(1, slot=0, pause=64))
+    dut.load_song(0)
+    dut.settings(clkin=True)
+    dut.use("song", CYCLE=1)
+    dut.settle(100, 2)
+    dut.play()
+    log = dut.stepped(quiet_ms=8).tick(40)
+    on = _first(log, lambda m: m.is_note_on(1, 64))
+    off = _first(log, lambda m: m.is_note_off(1, 64))
+    rec("тик NoteOn / NoteOff ноты последнего шага", (on, off))
+    assert on is not None, "нота последнего шага не прозвучала"
+    assert off is not None and off > on, f"нота последнего шага выключена в тот же тик ({on} / {off})"
 
 
 @pytest.mark.tid("D15", "P2")
