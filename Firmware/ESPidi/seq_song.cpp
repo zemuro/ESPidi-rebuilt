@@ -93,11 +93,16 @@ bool SongSequencer::ensureCurrentPattern(uint8_t slot) {
     return loadPattern(*cur, slot);
 }
 
+// Шаг, с которого песня начинается по PLAY: в REV — последний (решение автора), иначе первый.
+uint8_t SongSequencer::startStep() const {
+    return (params.mode == 1 && params.length > 0) ? params.length - 1 : 0;
+}
+
 // Паттерн, который понадобится следующим и ещё не загружен (0 — ничего не нужно):
-// во время игры — для следующего шага песни, в остановке — для первого, чтобы PLAY
+// во время игры — для следующего шага песни, в остановке — для стартового, чтобы PLAY
 // не читал файл прямо в такте.
 uint8_t SongSequencer::slotToPreload() const {
-    uint8_t next = enabled ? plannedNext : 0;
+    uint8_t next = enabled ? plannedNext : startStep();
     if (next >= MAX_SONG_STEPS) return 0;
     uint8_t slot = steps[next].patternSlot;
     if (slot == 0 || cur->slot == slot || nxt->slot == slot) return 0;
@@ -395,7 +400,7 @@ void SongSequencer::play() {
     enabled = true;
     resetClockPhase();
     direction = 1;
-    currentStep = 0;
+    currentStep = startStep();  // REV — с последнего шага, как секвенсор
     stepsPlayed = 0;
     patternPlayStep = 0;
     patternPlayLength = 0;
