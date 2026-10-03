@@ -114,9 +114,10 @@ def test_d6_pattern_file_roundtrip(dut, rec):
 
 
 @pytest.mark.tid("D7", "P1")
-@pytest.mark.design
-def test_d7_unsaved_edits_survive_pattern_switch(dut):
-    """Правки без SAVE при смене PTRN теряются молча."""
+def test_d7_unsaved_edits_guard_pattern_switch(dut, rec):
+    """Решение автора: с несохранёнными правками первый поворот PTRN не переключает, а мигает SAVE;
+    щелчки того же поворота (быстро подряд) — тоже нет; поворот после паузы, пока мигает, — переключает."""
+    dut.install_pattern(1, straight(8, note=70))
     dut.use("mel")
     dut.step_edit()
     dut.rec()
@@ -125,10 +126,39 @@ def test_d7_unsaved_edits_survive_pattern_switch(dut):
     dut.midi.note_off(1, 61)
     assert dut.c.seqdump(0, 1)[0]["n"] == [61]
     assert dut.state()["mel"]["dirty"]
-    dut.c.param("PTRN", 2)
-    dut.c.param("PTRN", 1)
-    n = dut.c.seqdump(0, 1)[0]["n"]
-    assert n == [61], f"несохранённая правка потеряна без предупреждения (шаг 0 = {n})"
+
+    dut.c.param("PTRN", 2)                       # первый поворот: только предупреждение
+    dut.c.param("PTRN", 2)                       # тот же поворот, следующий щелчок
+    s = dut.state()
+    first = (s["mel"]["ptrn"], s["warn"], dut.c.seqdump(0, 1)[0]["n"])
+    time.sleep(0.5)
+    dut.c.param("PTRN", 2)                       # новый поворот после паузы — переключаем
+    time.sleep(0.2)
+    s = dut.state()
+    second = (s["mel"]["ptrn"], s["warn"], dut.c.seqdump(0, 1)[0]["n"])
+    rec("(слот, мигает SAVE, шаг 0): после первого поворота / после повторного", (first, second))
+    assert first == (0, 1, [61]), "первый поворот должен только предупредить, правки на месте"
+    assert second == (1, 0, [70]), "повторный поворот должен переключить паттерн"
+
+
+@pytest.mark.tid("D20", "P1")
+def test_d20_unsaved_warning_expires(dut, rec):
+    """Предупреждение живёт ~2 с: поворот после него снова только предупреждает (SONG — то же правило)."""
+    dut.use("song", LENGTH=5)                    # LENGTH песни — несохранённая правка
+    assert dut.state()["song"]["dirty"]
+    song0 = dut.state()["song"]["song"]
+    dut.c.param("SONG", song0 + 2)
+    warned = dut.state()["warn"]
+    time.sleep(2.5)
+    expired = dut.state()["warn"]
+    dut.c.param("SONG", song0 + 2)               # окно истекло — опять только предупреждение
+    s = dut.state()
+    rec("мигает / погасло / снова мигает, слот", (warned, expired, s["warn"], s["song"]["song"]))
+    assert (warned, expired, s["warn"]) == (1, 0, 1)
+    assert s["song"]["song"] == song0, "песня переключилась, хотя правки не сохранены"
+    time.sleep(0.5)
+    dut.c.param("SONG", song0 + 2)               # повторный поворот — переключаем
+    assert dut.state()["song"]["song"] == song0 + 1
 
 
 @pytest.mark.tid("D8", "P1")

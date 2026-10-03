@@ -241,8 +241,8 @@ static void histJson(String& s, const char* key, const Hist& h, int nb) {
 static void cmdState(uint32_t id) {
     String s;
     s.reserve(1800);
-    jf(s, "{\"t\":%u,\"app\":%d,\"ui\":%d,\"col\":%d,\"row\":%d,\"bpm\":%u,\"heap\":%u,\"minheap\":%u,",
-       (unsigned)micros(), (int)currentAppType, (int)uiState, (int)currentCol, cursorVisualRow, (unsigned)globalBpm,
+    jf(s, "{\"t\":%u,\"app\":%d,\"warn\":%d,\"ui\":%d,\"col\":%d,\"row\":%d,\"bpm\":%u,\"heap\":%u,\"minheap\":%u,",
+       (unsigned)micros(), (int)currentAppType, (int)ui_unsavedWarnActive(), (int)uiState, (int)currentCol, cursorVisualRow, (unsigned)globalBpm,
        (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMinFreeHeap());
     jf(s, "\"clk\":{\"ext\":%d,\"out\":%d,\"tr\":%d,\"alive\":%d,\"disp\":%u,\"ticks\":%u},",
        clock_isSourceExternal(), clock_isOutEnabled(), clock_isTransportEnabled(), clock_isAlive(),
@@ -346,6 +346,8 @@ static void doReset() {
     clock_setBpm(120);
     melSeq.clear();
     songSeq.clear();
+    melSeq.markClean();  // сброс стенда — чистый лист, а не несохранённые правки
+    songSeq.markClean();
     melSeq.markClean();
     songSeq.markClean();
     needsSave = false;

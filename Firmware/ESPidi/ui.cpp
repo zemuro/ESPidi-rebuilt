@@ -14,6 +14,36 @@ extern SongSequencer songSeq;
 
 static uint8_t uiDirty = UI_DIRTY_FULL;
 
+// Несохранённые правки (решение автора): первый поворот PTRN/SONG номер не меняет, а мигает SAVE;
+// повторный поворот, пока SAVE мигает, переключает без сохранения. Щелчки одного непрерывного
+// поворота (паузы короче UNSAVED_TWIST_MS) — одна попытка: быстрым вращением правки не выбросить.
+static const unsigned long UNSAVED_WARN_MS = 2000;
+static const unsigned long UNSAVED_TWIST_MS = 300;
+static unsigned long unsavedWarnUntil = 0;
+static unsigned long unsavedLastTurn = 0;
+
+bool ui_unsavedWarnActive() {
+  return unsavedWarnUntil != 0 && (long)(millis() - unsavedWarnUntil) < 0;
+}
+
+static bool unsavedBlinkOn() {
+  return ui_unsavedWarnActive() && ((millis() / 250) % 2 == 0);
+}
+
+// true — поворот проглочен предупреждением, номер не меняем
+static bool unsavedGuard(bool dirty) {
+  if (!dirty) return false;
+  unsigned long now = millis();
+  if (ui_unsavedWarnActive() && now - unsavedLastTurn >= UNSAVED_TWIST_MS) {
+    unsavedWarnUntil = 0;  // повторный поворот после паузы — переключаем, правки выбрасываются
+    return false;
+  }
+  unsavedLastTurn = now;
+  unsavedWarnUntil = now + UNSAVED_WARN_MS;
+  uiDirty |= UI_DIRTY_FULL;
+  return true;
+}
+
 void ui_markDirty(uint8_t flags) {
   uiDirty |= flags;
 }
@@ -202,8 +232,10 @@ static void drawColumn(ParamDef* params, int count, int colX, bool isLeft) {
       }
     } else {
       display.setCursor(colX, y);
-      display.setTextColor(isCursorMode ? SSD1306_BLACK : SSD1306_WHITE,
-                           isCursorMode ? SSD1306_WHITE : SSD1306_BLACK);
+      bool inv = isCursorMode;
+      if (isSaveParam && unsavedBlinkOn()) inv = !inv;  // несохранённые правки — SAVE мигает
+      display.setTextColor(inv ? SSD1306_BLACK : SSD1306_WHITE,
+                           inv ? SSD1306_WHITE : SSD1306_BLACK);
       // При CLKIN лейбл темпа = EXT
       if (strcmp(params[paramIndex].label, "BPM") == 0 && clock_isSourceExternal()) {
         display.print("EXT");
@@ -298,6 +330,12 @@ void ui_present() {
 }
 
 void ui_drawScreen() {
+  static bool lastBlink = false;
+  bool blink = unsavedBlinkOn();
+  if (blink != lastBlink) {
+    lastBlink = blink;
+    uiDirty |= UI_DIRTY_FULL;
+  }
   // Нечего обновлять — не трогаем I2C (критично для MIDI clock)
   if (uiDirty == 0) {
     if (currentAppType == APP_MONITOR) {
@@ -1101,6 +1139,11 @@ void ui_handleEncoder(int delta) {
       return;
     }
     
+    if ((strcmp(param.label, "PTRN") == 0 && unsavedGuard(melSeq.isDirty())) ||
+        (strcmp(param.label, "SONG") == 0 && unsavedGuard(songSeq.isDirty()))) {
+      return;
+    }
+
     int oldValue = *param.value;
     *param.value = constrain(*param.value + delta, param.min, param.max);
 
