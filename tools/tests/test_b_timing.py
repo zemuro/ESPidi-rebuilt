@@ -212,21 +212,30 @@ def test_b11_tempo_accuracy(dut, rec, run_s):
 
 @pytest.mark.tid("B12", "P1")
 @pytest.mark.design
-def test_b12_tap_tempo_uses_only_last_interval(dut, rec):
-    """TAP считает темп по ПОСЛЕДНЕМУ интервалу. Интервалы 600/600/600/800 мс: среднее ≈ 92 BPM, по последнему — 75."""
+def test_b12_tap_tempo_averages_last_three(dut, rec):
+    """Решение автора: TAP — среднее последних трёх интервалов. 600/600/600/800 мс → (600+600+800)/3 ≈ 667 мс
+    = 90 BPM (по последнему интервалу было бы 75)."""
     c = dut.c
     gaps = [0.6, 0.6, 0.6, 0.8]
-    c.press("tap"); time.sleep(0.05); c.release("tap")
-    for g in gaps:
-        t0 = time.perf_counter()
-        time.sleep(g - 0.08)
-        c.press("tap"); time.sleep(0.05); c.release("tap")
-        time.sleep(max(0, g - (time.perf_counter() - t0) - 0.0))
+    # TAP срабатывает на отпускании. Отпускания — по расписанию от общего старта (задержки консоли
+    # не накапливаются); ожидаемый темп считаем по фактическим моментам отпусканий.
+    start = time.perf_counter() + 0.1
+    targets = [start + sum(gaps[:k]) for k in range(len(gaps) + 1)]
+    released = []
+    for tk in targets:
+        time.sleep(max(0, tk - 0.06 - time.perf_counter()))
+        c.press("tap")
+        time.sleep(max(0, tk - time.perf_counter()))
+        t1 = time.perf_counter()
+        c.release("tap")
+        released.append((t1 + time.perf_counter()) / 2)
     time.sleep(0.15)
     bpm = dut.state()["bpm"]
-    mean_bpm = 60.0 / (sum(gaps) / len(gaps))
-    rec("BPM после TAP / среднее по интервалам", f"{bpm} / {mean_bpm:.1f}")
-    assert abs(bpm - mean_bpm) <= 4, f"BPM={bpm}: учтён только последний интервал, среднее было бы {mean_bpm:.0f}"
+    real = [b - a for a, b in zip(released, released[1:])]
+    mean_bpm = 60.0 / (sum(real[-3:]) / 3)
+    rec("интервалы, мс", [round(x * 1000) for x in real])
+    rec("BPM после TAP / среднее трёх последних интервалов", f"{bpm} / {mean_bpm:.1f}")
+    assert abs(bpm - mean_bpm) <= 4, f"BPM={bpm}, по среднему трёх последних интервалов {mean_bpm:.0f}"
 
 
 @pytest.mark.tid("B13", "P1")

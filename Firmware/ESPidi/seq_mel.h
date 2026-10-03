@@ -140,7 +140,6 @@ private:
     
     SeqActiveNote activeNotes[MAX_ACTIVE_SEQ_NOTES];
     
-    unsigned long lastTapTime = 0;
     unsigned long lastChordTime = 0;
     bool noteHeld = false;
     uint8_t lastPlayedStep = 0;   // шаг, который звучит сейчас (последний сыгранный)

@@ -65,7 +65,6 @@ private:
     int8_t direction = 1;
     uint8_t playingNote = 255;
     uint8_t lastNote = 255;
-    unsigned long lastTapTime = 0;
     
     uint16_t ticksIntoStep = 0;
     uint16_t gateTicksLeft = 0;
