@@ -168,20 +168,37 @@ void MelodicSequencer::onClockTick() {
     }
 }
 
+// Куда писать ноту при записи: в STEP EDIT — в выбранный шаг; во время игры — в шаг,
+// который сейчас звучит (currentStep к этому моменту уже указывает на следующий).
+uint8_t MelodicSequencer::recordTargetStep() const {
+    if (stepEditActive) return editStep;
+    if (enabled) return lastPlayedStep;
+    return currentStep;
+}
+
 void MelodicSequencer::doStep() {
+    if (currentStep >= params.length) {
+        currentStep %= params.length;  // LENGTH уменьшили на ходу — сразу возвращаемся в границы
+    }
+
     bool doRandomize = false;
     if (params.probability > 0 && params.randomness > 0) {
         if (random(127) < params.probability) doRandomize = true;
     }
 
-    if (recording && noteHeld && !stepEditActive) {
-        tie[currentStep] = true;
+    if (recording && noteHeld && !stepEditActive && heldStep != currentStep) {
+        // Нота держится через границу шага: связываем шаг, где она записана, со следующим.
+        tie[heldStep] = true;
+        heldStep = currentStep;
+        patternDirty = true;
     }
+    lastPlayedStep = currentStep;
 
     uint8_t prevStep = (currentStep == 0) ? params.length - 1 : currentStep - 1;
 
     if (noteCount[currentStep] == 0 && tie[currentStep]) {
-        extendActiveNotesThroughTie(prevStep);
+        // Пустой связанный шаг: длина звучащих нот уже включает всю цепочку Tie
+        // (computeNoteLengthTicks при старте ноты) — повторно не продлеваем.
     } else {
         if (!tie[prevStep]) {
             activePoolStopAll(activeNotes, MAX_ACTIVE_SEQ_NOTES);
@@ -285,16 +302,29 @@ void MelodicSequencer::stopAllNotes() {
 
 // === MIDI in ===
 
+// STRUM работает как THRU: ON — входящий сигнал проходит на выход (ровно один раз, через
+// диспетчер), OFF — не проходит. Запись от STRUM не зависит. Возвращаемое значение
+// «обработано» = true значит «на выход не передавать».
 bool MelodicSequencer::handleNoteOn(uint8_t note, uint8_t velocity, uint8_t channel) {
-    if (params.strum == 1) {
-        MIDI.sendNoteOn(note, velocity, channel);
-    }
+    if (recording && channel == params.channel) recordNote(note, velocity, channel);
+    return params.strum == 0;
+}
 
-    if (!recording) return false;
-    if (channel != params.channel) return false;
+bool MelodicSequencer::handleNoteOff(uint8_t note, uint8_t channel) {
+    (void)note;
+    (void)channel;
+    if (recording) noteHeld = false;
+    return params.strum == 0;
+}
 
-    uint8_t targetStep = stepEditActive ? editStep : currentStep;
-    if (targetStep >= MAX_SEQ_STEPS) return true;
+bool MelodicSequencer::handleCC(uint8_t number, uint8_t value, uint8_t channel) {
+    if (recording && channel == params.channel) recordCC(number, value);
+    return params.strum == 0;
+}
+
+void MelodicSequencer::recordNote(uint8_t note, uint8_t velocity, uint8_t channel) {
+    uint8_t targetStep = recordTargetStep();
+    if (targetStep >= MAX_SEQ_STEPS) return;
 
     unsigned long now = millis();
     bool newChord = (now - lastChordTime > 80);
@@ -316,9 +346,10 @@ bool MelodicSequencer::handleNoteOn(uint8_t note, uint8_t velocity, uint8_t chan
         if (notes[targetStep][j] == (int8_t)note && channels[targetStep][j] == channel) {
             velocities[targetStep][j] = velocity;
             noteHeld = true;
+            heldStep = targetStep;
             patternDirty = true;
             scheduleGlobalSave();
-            return (params.strum == 1);
+            return;
         }
     }
 
@@ -338,39 +369,23 @@ bool MelodicSequencer::handleNoteOn(uint8_t note, uint8_t velocity, uint8_t chan
     lengthTicks[targetStep][noteCount[targetStep]] = 0;
     noteCount[targetStep]++;
     noteHeld = true;
+    heldStep = targetStep;
     patternDirty = true;
     scheduleGlobalSave();
 
-    return (params.strum == 1);
+    return;
 }
 
-bool MelodicSequencer::handleNoteOff(uint8_t note, uint8_t channel) {
-    if (params.strum == 1) {
-        MIDI.sendNoteOff(note, 0, channel);
-    }
-    if (recording) {
-        noteHeld = false;
-        return (channel == params.channel);
-    }
-    return false;
-}
-
-bool MelodicSequencer::handleCC(uint8_t number, uint8_t value, uint8_t channel) {
-    if (params.strum == 1) {
-        MIDI.sendControlChange(number, value, channel);
-    }
-    if (!recording) return false;
-    if (channel != params.channel) return false;
-
-    uint8_t targetStep = stepEditActive ? editStep : currentStep;
-    if (targetStep >= MAX_SEQ_STEPS) return true;
+void MelodicSequencer::recordCC(uint8_t number, uint8_t value) {
+    uint8_t targetStep = recordTargetStep();
+    if (targetStep >= MAX_SEQ_STEPS) return;
 
     for (int i = 0; i < ccCount[targetStep]; i++) {
         if (ccNumber[targetStep][i] == number) {
             ccValue[targetStep][i] = value;
             patternDirty = true;
             scheduleGlobalSave();
-            return (params.strum == 1);
+            return;
         }
     }
 
@@ -388,7 +403,7 @@ bool MelodicSequencer::handleCC(uint8_t number, uint8_t value, uint8_t channel) 
     patternDirty = true;
     scheduleGlobalSave();
 
-    return (params.strum == 1);
+    return;
 }
 
 // === Transport ===
@@ -401,6 +416,7 @@ void MelodicSequencer::play() {
     if (params.mode == 1) currentStep = params.length - 1;
     else currentStep = 0;
     editStep = currentStep;
+    lastPlayedStep = currentStep;
     extern void ui_markDirty(uint8_t flags);
     ui_markDirty(1);
 }
@@ -423,7 +439,9 @@ void MelodicSequencer::toggleRecord() {
 }
 
 void MelodicSequencer::clear() {
+    uint8_t keepPattern = currentPattern;  // очистка не меняет номер слота паттерна
     initArrays();
+    currentPattern = keepPattern;
     patternDirty = true;
     scheduleGlobalSave();
 }

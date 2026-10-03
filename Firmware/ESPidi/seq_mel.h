@@ -129,6 +129,8 @@ private:
     unsigned long lastTapTime = 0;
     unsigned long lastChordTime = 0;
     bool noteHeld = false;
+    uint8_t lastPlayedStep = 0;   // шаг, который звучит сейчас (последний сыгранный)
+    uint8_t heldStep = 0;         // шаг, куда записана удерживаемая нота (для авто-Tie)
     uint8_t currentPattern = 0;
     bool patternDirty = false;
     
@@ -142,6 +144,9 @@ private:
     uint16_t defaultGateTicks() const;
     uint16_t noteLengthFor(uint8_t step, uint8_t index) const;
     void extendActiveNotesThroughTie(uint8_t step);
+    uint8_t recordTargetStep() const;
+    void recordNote(uint8_t note, uint8_t velocity, uint8_t channel);
+    void recordCC(uint8_t number, uint8_t value);
 };
 
 #endif
