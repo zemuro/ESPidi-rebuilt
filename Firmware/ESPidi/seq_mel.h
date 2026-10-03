@@ -54,6 +54,7 @@ public:
     void stop() override;
     void toggle() override;
     void tap() override;
+    void silence() override { stopAllNotes(); }
     
     void clear();
     void toggleRecord();
@@ -129,6 +130,9 @@ private:
     unsigned long lastTapTime = 0;
     unsigned long lastChordTime = 0;
     bool noteHeld = false;
+    uint8_t lastPlayedStep = 0;   // шаг, который звучит сейчас (последний сыгранный)
+    uint8_t heldStep = 0;         // шаг, куда записана удерживаемая нота (для авто-Tie)
+    uint8_t recordedNotes[16] = {0};  // битовая карта нот, забранных в запись (их NoteOff тоже забираем)
     uint8_t currentPattern = 0;
     bool patternDirty = false;
     
@@ -142,6 +146,7 @@ private:
     uint16_t defaultGateTicks() const;
     uint16_t noteLengthFor(uint8_t step, uint8_t index) const;
     void extendActiveNotesThroughTie(uint8_t step);
+    uint8_t recordTargetStep() const;
 };
 
 #endif
