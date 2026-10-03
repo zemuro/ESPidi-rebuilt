@@ -36,6 +36,8 @@ struct SeqActiveNote {
     bool used = false;
 };
 
+struct MelPatternFile;  // содержимое файла паттерна (seq_mel.cpp)
+
 class MelodicSequencer : public App {
 public:
     MelSeqParams params;
@@ -60,6 +62,10 @@ public:
     void clearStep(uint8_t step);
     bool saveToFile(uint8_t slot);
     bool loadFromFile(uint8_t slot);
+    // Смена паттерна из меню: файл читается в основном цикле вне блокировки движка
+    // (loadRequestedPattern), применяется под ней — такты не ждут чтения LittleFS.
+    void requestPattern(uint8_t slot) { requestedPattern = slot; }
+    void loadRequestedPattern();
     uint8_t getCurrentPattern() const { return currentPattern; }
     void markDirty() { patternDirty = true; }
     bool isDirty() const { return patternDirty; }
@@ -133,8 +139,11 @@ private:
     uint8_t heldStep = 0;         // шаг, куда записана удерживаемая нота (для авто-Tie)
     uint8_t currentPattern = 0;
     bool patternDirty = false;
+    uint8_t requestedPattern = 255;  // 255 — запроса нет
     
     void initArrays();
+    static int readPatternFile(uint8_t slot, MelPatternFile& f);
+    bool applyPatternFile(uint8_t slot, int status, const MelPatternFile& f);
     void stopAllNotes();
     void playStep(uint8_t step, bool doRandomize);
     uint16_t stepTicks() const;

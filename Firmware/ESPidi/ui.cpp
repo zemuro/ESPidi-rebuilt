@@ -248,10 +248,20 @@ static void drawColumn(ParamDef* params, int count, int colX, bool isLeft) {
 // Отправка кадра на дисплей: только изменившиеся страницы (полосы по 8 строк пикселей).
 // Обычно меняется одна строка — бегущий шаг или значение параметра, — и вместо 512 байт
 // по I²C уходит 128, т. е. основной цикл занят в несколько раз меньше. Шина остаётся на 400 кГц.
+//
+// Кадр рисуется в буфер под блокировкой движка (ui_drawScreen), а по I²C уходит уже без неё
+// (ui_present): 4–14 мс передачи не задерживают такты.
 static uint8_t oledShadow[OLED_WIDTH * OLED_HEIGHT / 8];
 static bool oledShadowValid = false;
+static bool framePending = false;
 
 static void ui_flush() {
+  framePending = true;
+}
+
+void ui_present() {
+  if (!framePending) return;
+  framePending = false;
   const uint8_t* buf = display.getBuffer();
   Wire.setClock(400000);  // Adafruit после своих команд возвращает шину на 100 кГц
   for (int page = 0; page < OLED_HEIGHT / 8; page++) {
@@ -301,8 +311,6 @@ void ui_drawScreen() {
   lastDraw = now;
   uiDirty = 0;
 
-  MIDI.read();
-
   display.clearDisplay();
   display.setTextSize(1);
 
@@ -312,7 +320,6 @@ void ui_drawScreen() {
     display.setCursor(5, 5);
     display.print(appNames[menuPosition]);
     ui_flush();
-    MIDI.read();
     return;
   }
   // HELP экран для Settings
@@ -330,7 +337,6 @@ void ui_drawScreen() {
     display.println("TAP+PLAY: rec mode");
     display.println("LONG PLAY: clear");
     ui_flush();
-    MIDI.read();
     return;
   }
   // STEP EDIT режим
@@ -473,7 +479,6 @@ void ui_drawScreen() {
     }
 
     ui_flush();
-    MIDI.read();
     return;
   }
 
@@ -659,7 +664,6 @@ void ui_drawScreen() {
     }
     
     ui_flush();
-    MIDI.read();
     return;
   }
 
@@ -890,7 +894,6 @@ void ui_drawScreen() {
   }
 
   ui_flush();
-  MIDI.read();
 }
 
 void ui_handleEncoder(int delta) {
@@ -1094,9 +1097,9 @@ void ui_handleEncoder(int delta) {
       clock_setBpm(*param.value);
     }
     
-    // При смене PTRN — загружаем паттерн
+    // При смене PTRN — загружаем паттерн (файл читается в основном цикле вне блокировки движка)
     if (strcmp(param.label, "PTRN") == 0 && *param.value != oldValue) {
-      melSeq.loadFromFile(*param.value - 1);
+      melSeq.requestPattern(*param.value - 1);
       scheduleGlobalSave();
     }
     
