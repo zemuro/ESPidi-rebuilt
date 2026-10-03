@@ -800,7 +800,7 @@ void ui_drawScreen() {
         
         display.setCursor(0, y);
         display.print("CH");
-        display.print(note.channel + 1);
+        display.print(note.channel);  // канал уже 1–16
         display.print(" ");
         
         display.setCursor(24, y);
@@ -870,16 +870,15 @@ void ui_handleEncoder(int delta) {
   }
 
   if (uiState == UI_STEP_EDIT && currentAppType == APP_MEL_SEQ) {
-    int8_t dir = (delta > 0) ? 1 : -1;
-    
+    // Учитываем весь накопленный поворот: за один цикл (например, во время перерисовки)
+    // энкодер может набрать несколько щелчков.
     if (melSeq.transposeEditActive) {
-      melSeq.adjustTranspose(melSeq.getEditStep(), dir);
+      melSeq.adjustTranspose(melSeq.getEditStep(), (int8_t)constrain(delta, -48, 48));
       return;
     }
     
-    int16_t newStep = (int16_t)melSeq.getEditStep() + dir;
-    if (newStep < 0) newStep = melSeq.params.length - 1;
-    if (newStep >= melSeq.params.length) newStep = 0;
+    int16_t len = melSeq.params.length;
+    int16_t newStep = ((int16_t)melSeq.getEditStep() + delta % len + len) % len;
     melSeq.setEditStepDirect((uint8_t)newStep);
     lastEditStep = newStep;
     lastEditStepValid = true;
@@ -894,10 +893,9 @@ void ui_handleEncoder(int delta) {
     int8_t dir = (delta > 0) ? 1 : -1;
     
     if (songSeq.stepSelectMode) {
-      // Правый столбец: выбор шага
-      int16_t newStep = (int16_t)songSeq.getEditStep() + dir;
-      if (newStep < 0) newStep = songSeq.params.length - 1;
-      if (newStep >= songSeq.params.length) newStep = 0;
+      // Правый столбец: выбор шага (весь накопленный поворот, с переходом по кругу)
+      int16_t len = songSeq.params.length;
+      int16_t newStep = ((int16_t)songSeq.getEditStep() + delta % len + len) % len;
       songSeq.setEditStepDirect((uint8_t)newStep);
       uint8_t newPage = (newStep / STEPS_PER_PAGE) + 1;
       if (newPage != songSeq.params.page && newPage >= 1 && newPage <= 4) {
@@ -956,24 +954,24 @@ void ui_handleEncoder(int delta) {
         switch (activeParam) {
           case STEP_PARAM_PATTERN:
             {
-              int16_t newSlot = (int16_t)sp.patternSlot + dir;
+              int16_t newSlot = (int16_t)sp.patternSlot + delta;
               newSlot = constrain(newSlot, 0, 64);
               songSeq.setPatternSlot(step, (uint8_t)newSlot);
             }
             break;
           case STEP_PARAM_TRANSPOSE:
-            songSeq.adjustTranspose(step, dir);
+            songSeq.adjustTranspose(step, (int8_t)constrain(delta, -48, 48));
             break;
           case STEP_PARAM_PAUSE_LEN:
             {
-              int16_t newLen = (int16_t)sp.pauseLength + dir;
+              int16_t newLen = (int16_t)sp.pauseLength + delta;
               newLen = constrain(newLen, 1, 64);
               songSeq.setPauseLength(step, (uint8_t)newLen);
             }
             break;
           case STEP_PARAM_DIVIDER:
             {
-              int16_t newDiv = (int16_t)sp.divider + dir;
+              int16_t newDiv = (int16_t)sp.divider + delta;
               newDiv = constrain(newDiv, 0, 5);
               songSeq.setDivider(step, (uint8_t)newDiv);
             }
@@ -1105,6 +1103,7 @@ void ui_handleEncoderPress(bool shortPress) {
     if (shortPress) {
       ui_setApp((AppType)menuPosition);
       uiState = UI_NAVIGATE;
+      scheduleGlobalSave();  // запомнить выбранное приложение
     }
     return;
   }
