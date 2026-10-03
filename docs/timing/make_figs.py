@@ -48,7 +48,8 @@ STAGES = [
     ("s0", "Исходная", "#7a2e1d", "o"),
     ("s1", "Волна 1", "#d08a4c", "s"),
     ("s2", "Волна 2.1", "#8c9bb0", "D"),
-    ("s3", "Волна 2.2", "#2f6b5e", "o"),
+    ("s3", "Волна 2.2", "#6f9e8f", "v"),
+    ("s4", "Волна 2.3", "#1f4e46", "o"),
 ]
 SCEN = [
     ("B1", "Ничего не играет"),
@@ -130,7 +131,7 @@ def comma(v, _=None):
 def stage_legend(ax, hollow_note=False):
     h = [Line2D([], [], marker=m, ls="", color=c, markersize=5, label=l) for _, l, c, m in STAGES]
     if hollow_note:
-        h.append(Line2D([], [], marker="o", ls="", markerfacecolor="white", markeredgecolor=STAGES[3][2],
+        h.append(Line2D([], [], marker="o", ls="", markerfacecolor="white", markeredgecolor=STAGES[-1][2],
                         markersize=5, label="в фоне, такты\nне задерживает"))
     ax.legend(handles=h, loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize=7.5,
               handletextpad=0.2, borderaxespad=0.2)
@@ -139,7 +140,7 @@ def stage_legend(ax, hollow_note=False):
 def dotplot(name, rows, values, xlabel, refs=(), xlim=None, hollow=None, ticks=None):
     """Строка на сценарий/операцию, точка на версию; ось X логарифмическая."""
     n = len(rows)
-    fig, ax = plt.subplots(figsize=(4.5, 0.34 * n + 0.75))
+    fig, ax = plt.subplots(figsize=(4.5, 0.4 * n + 0.75))
     for i, (key, label) in enumerate(rows):
         y = n - 1 - i
         xs = [values.get((k, key)) for k, *_ in STAGES]
@@ -150,7 +151,7 @@ def dotplot(name, rows, values, xlabel, refs=(), xlim=None, hollow=None, ticks=N
             if x is None:
                 continue
             face = "white" if hollow and hollow(k, key) else c
-            ax.plot(x, y + (j - 1.5) * 0.1, marker=m, color=c, markerfacecolor=face, markersize=4.8, ls="", zorder=3)
+            ax.plot(x, y + (j - (len(STAGES) - 1) / 2) * 0.09, marker=m, color=c, markerfacecolor=face, markersize=4.8, ls="", zorder=3)
     for r, (lab, v) in enumerate(refs):
         ax.axvline(v, color=QUIET, lw=0.6, ls=(0, (3, 2)), zorder=0)
         ha = "center" if len(refs) == 1 else ("right" if r == 0 else "left")
@@ -188,14 +189,14 @@ dotplot("sigma.png", SCEN,
 # 3. Диапазон интервалов: мин–макс полосами
 def ranges():
     n = len(SCEN)
-    fig, ax = plt.subplots(figsize=(4.5, 0.42 * n + 0.75))
+    fig, ax = plt.subplots(figsize=(4.5, 0.52 * n + 0.75))
     for i, (t, label) in enumerate(SCEN):
         y = n - 1 - i
         for j, (k, _, c, _) in enumerate(STAGES):
             r = S.get(f"{k}/{t}")
             if not r:
                 continue
-            yy = y + (1.5 - j) * 0.17
+            yy = y + ((len(STAGES) - 1) / 2 - j) * 0.15
             ax.plot([r["min"], r["max"]], [yy, yy], color=c, lw=2.4, solid_capstyle="butt")
     ax.axvspan(0.1, NOMINAL, color="#f3f3f3", zorder=0, lw=0)
     ax.axvline(NOMINAL, color=QUIET, lw=0.6, ls=(0, (3, 2)))
@@ -221,7 +222,7 @@ ranges()
 
 # 4. Опоздание тактов: тепловая карта по корзинам, панель на версию
 def late_heat():
-    fig, axes = plt.subplots(1, 4, figsize=(6.2, 2.9), sharey=True)
+    fig, axes = plt.subplots(1, len(STAGES), figsize=(7.4, 2.9), sharey=True)
     norm = LogNorm(vmin=1, vmax=600)
     cmap = matplotlib.colormaps["YlOrBr"]
     for ax, (k, label, c, _) in zip(axes, STAGES):
@@ -275,6 +276,6 @@ with open(os.path.join(HERE, "data.json"), "w", encoding="utf-8") as fh:
 
 dotplot("blocking.png", OPS, OPV, "наибольшая длительность, мс (лог. шкала)",
         refs=(("допуск 3 мс", 3.0),), xlim=(0.001, 300),
-        hollow=lambda k, op: k == "s3" and op in BACKGROUND_S3)
+        hollow=lambda k, op: k in ("s3", "s4") and op in BACKGROUND_S3)
 
 print("ok:", len(S), "сценариев×версий;", sorted(os.listdir(OUT)))
