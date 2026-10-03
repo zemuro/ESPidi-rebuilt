@@ -45,6 +45,11 @@ public:
     void stop() override;
     void toggle() override;
     void tap() override;
+    void silence() override {
+        uint8_t slot = patternBufferSlot;   // stopAllNotes() сбрасывает буфер паттерна —
+        stopAllNotes();                     // перечитываем его, чтобы шаг песни продолжил звучать
+        if (slot != 255) loadPatternToBuffer(slot);
+    }
     
     void clear();
     void clearStep(uint8_t step);
@@ -102,6 +107,7 @@ private:
     uint8_t editStep = 0;
     int8_t direction = 1;
     uint16_t ticksIntoStep = 0;
+    uint16_t stepsPlayed = 0;    // сыграно шагов песни с последнего PLAY (для CYCLE = OFF)
     unsigned long lastTapTime = 0;
     uint8_t currentSong = 0;
     bool songDirty = false;
