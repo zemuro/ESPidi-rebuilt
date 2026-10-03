@@ -36,7 +36,7 @@ ParamDef arpLeft[] = {
   { "BPM", &globalBpm, 40, 250, nullptr, 0 },
   { "MODE", &arp.params.mode, 0, 3, arpModeNames, 4 },
   { "DIV", &arp.params.division, 0, 5, divNames, 6 },
-  { "STRUM", &arp.params.strum, 0, 1, onOffNames, 2 },
+  { "THRU", &arp.params.strum, 0, 1, onOffNames, 2 },   // пропускать исходный сигнал на выход
   { "HOLD", &arp.params.hold, 0, 1, onOffNames, 2 }
 };
 
@@ -51,7 +51,7 @@ ParamDef seqLeft[] = {
   { "BPM", &globalBpm, 40, 250, nullptr, 0 },
   { "MODE", &melSeq.params.mode, 0, 3, seqModeNames, 4 },
   { "LENGTH", &melSeq.params.length, 1, 64, nullptr, 0 },
-  { "STRUM", &melSeq.params.strum, 0, 1, onOffNames, 2 },
+  { "THRU", &melSeq.params.strum, 0, 1, onOffNames, 2 },   // пропускать исходный сигнал на выход
   { "RE-REC", &melSeq.params.reRec, 0, 1, onOffNames, 2 }
 };
 
