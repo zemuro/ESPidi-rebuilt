@@ -1,0 +1,1054 @@
+[
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_console_state",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_virtual_buttons_drive_real_ui_code",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_encoder_moves_cursor",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_long_press_encoder_opens_menu",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_param_setter_uses_ui_path",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_midi_loopback_passthrough",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_screen_dump_not_blank",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_clock_out_reaches_pc",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "B1",
+  "prio": "P0",
+  "name": "test_b1_idle_baseline",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 2
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:577"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:673261 <5мс:6"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:336627 <5мс:6"
+   ],
+   [
+    "loop max, мкс",
+    4482
+   ],
+   [
+    "EEPROM commit",
+    0
+   ],
+   [
+    "ПК: Clock",
+    "n=575 mean=20.832 σ=0.068 min=20.46 max=21.22 p99=20.99 (nominal 20.833) выбросов>26.0мс: 0"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.2"
+   ]
+  ]
+ },
+ {
+  "id": "B2",
+  "prio": "P0",
+  "name": "test_b2_arp_running_with_redraw",
+  "status": "DEFECT",
+  "msg": "ПК: интервал Clock 34.5 мс > 26.2 мс (выбросов 2); ESP: опоздание тика 12795 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 75,
+     "ui.draw": 14186,
+     "save.eeprom": 18109
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:583 <2мс:1 <5мс:3 <10мс:2 <20мс:1"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:524435 <1мс:2 <5мс:5 <20мс:193"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:262117 <1мс:1 <5мс:5 <20мс:194"
+   ],
+   [
+    "loop max, мкс",
+    19188
+   ],
+   [
+    "EEPROM commit",
+    1
+   ],
+   [
+    "ПК: Clock",
+    "n=588 mean=20.832 σ=1.169 min=12.69 max=34.47 p99=23.74 (nominal 20.833) выбросов>26.0мс: 2"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.2"
+   ],
+   [
+    "ui.draw (макс/кол-во)",
+    {
+     "n": 193,
+     "max": 14186,
+     "sum": 2710924
+    }
+   ]
+  ]
+ },
+ {
+  "id": "B3",
+  "prio": "P0",
+  "name": "test_b3_encoder_spin_redraw",
+  "status": "DEFECT",
+  "msg": "ПК: интервал Clock 34.3 мс > 26.2 мс (выбросов 24); ESP: опоздание тика 13308 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 3,
+     "ui.draw": 13902
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:352 <0.5мс:8 <2мс:2 <5мс:9 <10мс:10 <20мс:14"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:406816 <1мс:24 <2мс:17 <5мс:2 <20мс:66"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:203394 <5мс:2 <20мс:66"
+   ],
+   [
+    "loop max, мкс",
+    19003
+   ],
+   [
+    "EEPROM commit",
+    0
+   ],
+   [
+    "ПК: Clock",
+    "n=394 mean=20.832 σ=3.633 min=7.47 max=34.27 p99=33.09 (nominal 20.833) выбросов>26.0мс: 24"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.2"
+   ]
+  ]
+ },
+ {
+  "id": "B4",
+  "prio": "P0",
+  "name": "test_b4_sequencer_step_stop_all",
+  "status": "DEFECT",
+  "msg": "ПК: интервал Clock 37.3 мс > 26.2 мс (выбросов 98); ESP: опоздание тика 9680 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 734,
+     "ui.draw": 14211,
+     "mel.stopAll": 615,
+     "save.eeprom": 589
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:588 <0.5мс:1 <10мс:1"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:594120 <1мс:40 <2мс:1 <5мс:6 <20мс:98"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:297026 <1мс:2 <5мс:6 <20мс:98"
+   ],
+   [
+    "loop max, мкс",
+    15361
+   ],
+   [
+    "EEPROM commit",
+    1
+   ],
+   [
+    "ПК: Clock",
+    "n=589 mean=20.832 σ=9.332 min=4.40 max=37.27 p99=37.11 (nominal 20.833) выбросов>26.0мс: 98"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.2"
+   ],
+   [
+    "CC123 всего / NoteOn(60)",
+    "1552 / 97"
+   ],
+   [
+    "NoteOn: макс. отклонение от 125 мс",
+    "0.2 мс"
+   ]
+  ]
+ },
+ {
+  "id": "B5",
+  "prio": "P0",
+  "name": "test_b5_song_pattern_boundary",
+  "status": "DEFECT",
+  "msg": "ПК: интервал Clock 146.5 мс > 26.2 мс (выбросов 7); ESP: опоздание тика 96708 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 117515,
+     "ui.draw": 14171,
+     "song.loadBuf": 17476,
+     "song.stopAll": 117402,
+     "save.eeprom": 592
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:545 <5мс:7 <10мс:1 <20мс:6 ≥20мс:30"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:558311 <1мс:2 <5мс:6 <20мс:88 ≥100мс:6"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:279104 <1мс:3 <5мс:6 <20мс:87 ≥100мс:6"
+   ],
+   [
+    "loop max, мкс",
+    149527
+   ],
+   [
+    "EEPROM commit",
+    1
+   ],
+   [
+    "ПК: Clock",
+    "n=588 mean=20.854 σ=13.679 min=0.16 max=146.49 p99=146.46 (nominal 20.833) выбросов>26.0мс: 7"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.2"
+   ],
+   [
+    "song.stopAll / song.loadBuf (макс, мкс)",
+    [
+     117402,
+     17476
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "B6",
+  "prio": "P0",
+  "name": "test_b6_arp_release_last_key",
+  "status": "DEFECT",
+  "msg": "ПК: интервал Clock 140.8 мс > 26.2 мс (выбросов 5); ESP: опоздание тика 113540 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 52,
+     "ui.draw": 14080,
+     "arp.stopSounding": 117464,
+     "save.eeprom": 2777
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:451 <5мс:1 <10мс:2 <20мс:1 ≥20мс:19"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:456024 <1мс:2 <5мс:6 <20мс:77 ≥100мс:4"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:227968 <1мс:1 <2мс:1 <5мс:5 <20мс:77 ≥100мс:4"
+   ],
+   [
+    "loop max, мкс",
+    122061
+   ],
+   [
+    "EEPROM commit",
+    1
+   ],
+   [
+    "ПК: Clock",
+    "n=473 mean=20.833 σ=11.293 min=0.24 max=140.76 p99=27.70 (nominal 20.833) выбросов>26.0мс: 5"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.2"
+   ],
+   [
+    "arp.stopSounding (макс, мкс)",
+    117464
+   ]
+  ]
+ },
+ {
+  "id": "B7",
+  "prio": "P0",
+  "name": "test_b7_pattern_switch_while_playing",
+  "status": "DEFECT",
+  "msg": "ПК: интервал Clock 37.2 мс > 26.2 мс (выбросов 86); ESP: опоздание тика 24780 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 735,
+     "ui.draw": 14214,
+     "mel.stopAll": 667,
+     "mel.load": 24599
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:458 <0.5мс:1 <1мс:1 <2мс:1 <5мс:2 <10мс:7 <20мс:23 ≥20мс:3"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:447914 <1мс:30 <5мс:5 <20мс:93 <50мс:17"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:223922 <1мс:1 <5мс:5 <20мс:81 <50мс:20"
+   ],
+   [
+    "loop max, мкс",
+    40183
+   ],
+   [
+    "EEPROM commit",
+    0
+   ],
+   [
+    "ПК: Clock",
+    "n=494 mean=20.832 σ=9.215 min=0.25 max=37.23 p99=37.12 (nominal 20.833) выбросов>26.0мс: 86"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.2"
+   ],
+   [
+    "mel.load (макс, мкс)",
+    24599
+   ]
+  ]
+ },
+ {
+  "id": "B8",
+  "prio": "P0",
+  "name": "test_b8_autosave_stall",
+  "status": "DEFECT",
+  "msg": "ESP: опоздание тика 13070 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "ui.draw": 13917,
+     "dispatch_tick": 7,
+     "save.eeprom": 2764
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:402 <0.5мс:1 <2мс:1 <5мс:1 <20мс:1"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:461075 <5мс:5 <20мс:1"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:230534 <5мс:5 <20мс:1"
+   ],
+   [
+    "loop max, мкс",
+    14182
+   ],
+   [
+    "EEPROM commit",
+    1
+   ],
+   [
+    "ПК: Clock",
+    "n=405 mean=20.800 σ=0.689 min=7.71 max=23.41 p99=21.10 (nominal 20.833) выбросов>26.0мс: 0"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.2"
+   ],
+   [
+    "save.eeprom (макс, мкс)",
+    2764
+   ]
+  ]
+ },
+ {
+  "id": "B11",
+  "prio": "P1",
+  "name": "test_b11_tempo_accuracy",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "средний интервал / номинал",
+    "20.8323 / 20.8333 мс; отклонение 0.0050 %"
+   ]
+  ]
+ },
+ {
+  "id": "B12",
+  "prio": "P1",
+  "name": "test_b12_tap_tempo_uses_only_last_interval",
+  "status": "UNCLEAR",
+  "msg": "BPM=69: учтён только последний интервал, среднее было бы 92",
+  "props": [
+   [
+    "BPM после TAP / среднее по интервалам",
+    "69 / 92.3"
+   ]
+  ]
+ },
+ {
+  "id": "B13",
+  "prio": "P1",
+  "name": "test_b13_external_clock_lost_hangs_notes",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "B14",
+  "prio": "P1",
+  "name": "test_b14_first_step_plays_on_start",
+  "status": "UNCLEAR",
+  "msg": "первая нота на тике 5 — со сдвигом на 5 тик(ов) от Start",
+  "props": [
+   [
+    "тик первой ноты после Start (0 = сразу)",
+    5
+   ]
+  ]
+ },
+ {
+  "id": "C1",
+  "prio": "P0",
+  "name": "test_c1_seq_strum_no_double_send",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "NoteOn / NoteOff на выходе",
+    "1 / 1"
+   ]
+  ]
+ },
+ {
+  "id": "C12",
+  "prio": "P1",
+  "name": "test_c12_seq_strum_off_blocks_input",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "C2",
+  "prio": "P0",
+  "name": "test_c2_arp_hold_swallows_note_off",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "C3",
+  "prio": "P1",
+  "name": "test_c3_arp_retrigger_without_note_off",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "NoteOn поверх звучащей ноты",
+    []
+   ]
+  ]
+ },
+ {
+  "id": "C4",
+  "prio": "P1",
+  "name": "test_c4_seq_cc123_during_playback",
+  "status": "UNCLEAR",
+  "msg": "80 сообщений CC123 во время воспроизведения (по 16 каналам на каждом шаге)",
+  "props": [
+   [
+    "CC123 за 30 тиков воспроизведения (5 шагов)",
+    80
+   ]
+  ]
+ },
+ {
+  "id": "C5",
+  "prio": "P1",
+  "name": "test_c5_passthrough_other_messages[pitchbend]",
+  "status": "UNCLEAR",
+  "msg": "pitchbend: на выходе тишина — сообщение отброшено прошивкой",
+  "props": []
+ },
+ {
+  "id": "C5",
+  "prio": "P1",
+  "name": "test_c5_passthrough_other_messages[program]",
+  "status": "UNCLEAR",
+  "msg": "program: на выходе тишина — сообщение отброшено прошивкой",
+  "props": []
+ },
+ {
+  "id": "C5",
+  "prio": "P1",
+  "name": "test_c5_passthrough_other_messages[channel_pressure]",
+  "status": "UNCLEAR",
+  "msg": "channel_pressure: на выходе тишина — сообщение отброшено прошивкой",
+  "props": []
+ },
+ {
+  "id": "C5",
+  "prio": "P1",
+  "name": "test_c5_passthrough_other_messages[poly_pressure]",
+  "status": "UNCLEAR",
+  "msg": "poly_pressure: на выходе тишина — сообщение отброшено прошивкой",
+  "props": []
+ },
+ {
+  "id": "C5",
+  "prio": "P1",
+  "name": "test_c5_passthrough_other_messages[sysex]",
+  "status": "UNCLEAR",
+  "msg": "sysex: на выходе тишина — сообщение отброшено прошивкой",
+  "props": []
+ },
+ {
+  "id": "C11",
+  "prio": "P1",
+  "name": "test_c11_truncated_sysex_locks_note_input",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "сырые байты на входе",
+    "f07d01913c64813c00"
+   ]
+  ]
+ },
+ {
+  "id": "C6",
+  "prio": "P1",
+  "name": "test_c6_monitor_shows_wrong_channel",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "(отправлен канал, показано)",
+    []
+   ]
+  ]
+ },
+ {
+  "id": "C7",
+  "prio": "P2",
+  "name": "test_c7_note_on_velocity_zero_is_note_off",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "C9",
+  "prio": "P2",
+  "name": "test_c9_arp_capacity_8_keys_4_octaves",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "различных нот в арпеджио",
+    32
+   ]
+  ]
+ },
+ {
+  "id": "C10",
+  "prio": "P0",
+  "name": "test_c10_seq_rec_strum_off_swallows_note_off",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "D1",
+  "prio": "P1",
+  "name": "test_d1_record_lands_on_sounding_step",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "ноты в шагах 0/1/2",
+    [
+     [
+      60
+     ],
+     [],
+     []
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "D3",
+  "prio": "P1",
+  "name": "test_d3_tie_extends_note_by_one_step_each[1-9]",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "тик NoteOn / NoteOff",
+    [
+     5,
+     14
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "D3",
+  "prio": "P1",
+  "name": "test_d3_tie_extends_note_by_one_step_each[2-15]",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "тик NoteOn / NoteOff",
+    [
+     5,
+     20
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "D4",
+  "prio": "P1",
+  "name": "test_d4_shrink_length_while_playing_pend",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "шаг после уменьшения LENGTH до 4",
+    3
+   ]
+  ]
+ },
+ {
+  "id": "D5",
+  "prio": "P1",
+  "name": "test_d5_record_limits_in_step_edit",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "шаг 0",
+    {
+     "n": [
+      61,
+      62,
+      63,
+      64,
+      65,
+      66
+     ],
+     "v": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+     ],
+     "cc": [
+      [
+       2,
+       20
+      ],
+      [
+       3,
+       30
+      ],
+      [
+       4,
+       40
+      ]
+     ],
+     "tie": 0,
+     "tr": 0
+    }
+   ]
+  ]
+ },
+ {
+  "id": "D6",
+  "prio": "P0",
+  "name": "test_d6_pattern_file_roundtrip",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "размер файла (исходный / после SAVE)",
+    "2193 / 2193"
+   ]
+  ]
+ },
+ {
+  "id": "D7",
+  "prio": "P1",
+  "name": "test_d7_unsaved_edits_survive_pattern_switch",
+  "status": "UNCLEAR",
+  "msg": "несохранённая правка потеряна без предупреждения (шаг 0 = [60])",
+  "props": []
+ },
+ {
+  "id": "D8",
+  "prio": "P1",
+  "name": "test_d8_clear_keeps_pattern_slot",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "внутренний слот после CLEAR (экран показывает PTRN 5)",
+    4
+   ]
+  ]
+ },
+ {
+  "id": "D10",
+  "prio": "P0",
+  "name": "test_d10_song_rnd_cycle_off_stops_early",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "(сыграно шагов, остановилась) по попыткам",
+    [
+     [
+      8,
+      true
+     ],
+     [
+      8,
+      true
+     ],
+     [
+      8,
+      true
+     ],
+     [
+      8,
+      true
+     ],
+     [
+      8,
+      true
+     ],
+     [
+      8,
+      true
+     ],
+     [
+      8,
+      true
+     ],
+     [
+      8,
+      true
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "D11",
+  "prio": "P1",
+  "name": "test_d11_mute_lasts_as_long_as_the_pattern",
+  "status": "DEFECT",
+  "msg": "assert (48 is not None and None is not None)",
+  "props": [
+   [
+    "длительность шага, тиков (обычный / MUTE)",
+    [
+     48,
+     null
+    ]
+   ],
+   [
+    "диагностика",
+    "шаг не сменился: тик 33, song={'en': 0, 'step': 0, 'edit': 0, 'len': 2, 'mode': 0, 'cycle': 1, 'ch': 1, 'song': 0, 'dirty': 0, 'stepedit': 0, 'sel': 0}, прошло 6.2 с"
+   ]
+  ]
+ },
+ {
+  "id": "D12",
+  "prio": "P1",
+  "name": "test_d12_song_ignores_gate",
+  "status": "UNCLEAR",
+  "msg": "SEQ 1 тиков, SONG 6 тиков",
+  "props": [
+   [
+    "длина ноты, тиков (SEQ при GATE=20 / SONG)",
+    [
+     1,
+     6
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "D15",
+  "prio": "P2",
+  "name": "test_d15_song_rev_starts_from_last_step",
+  "status": "UNCLEAR",
+  "msg": "REV стартует с шага 1 вместо 4 (SEQ в REV стартует с последнего)",
+  "props": []
+ },
+ {
+  "id": "A3",
+  "prio": "P2",
+  "name": "test_a3_first_boot_defaults",
+  "status": "SKIP",
+  "msg": "Skipped: стирает flash устройства; добавьте --allow-wipe",
+  "props": []
+ },
+ {
+  "id": "E1",
+  "prio": "P0",
+  "name": "test_e1_eeprom_overlap[120]",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "BPM=120: ожидалось / получено",
+    "{'mode': 2, 'ch': 5, 'gate': 70, 'swing': 0, 'rand': 0, 'prob': 0} / {'mode': 2, 'ch': 5, 'gate': 70, 'swing': 0, 'rand': 0, 'prob': 0}"
+   ]
+  ]
+ },
+ {
+  "id": "E1",
+  "prio": "P0",
+  "name": "test_e1_eeprom_overlap[140]",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "BPM=140: ожидалось / получено",
+    "{'mode': 2, 'ch': 5, 'gate': 70, 'swing': 0, 'rand': 0, 'prob': 0} / {'mode': 2, 'ch': 5, 'gate': 70, 'swing': 0, 'rand': 0, 'prob': 0}"
+   ]
+  ]
+ },
+ {
+  "id": "E3",
+  "prio": "P1",
+  "name": "test_e3_app_selection_persists",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "E4",
+  "prio": "P1",
+  "name": "test_e4_arp_play_state_not_restored_as_playing",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "E5",
+  "prio": "P2",
+  "name": "test_e5_plain_play_does_not_change_flash[mel]",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "mel: commit-вызовов / EEPROM изменился",
+    "1 / False"
+   ]
+  ]
+ },
+ {
+  "id": "E5",
+  "prio": "P2",
+  "name": "test_e5_plain_play_does_not_change_flash[song]",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "song: commit-вызовов / EEPROM изменился",
+    "1 / False"
+   ]
+  ]
+ },
+ {
+  "id": "F2",
+  "prio": "P1",
+  "name": "test_f2_step_edit_fast_turn",
+  "status": "SKIP",
+  "msg": "Skipped: решение автора: шаг за итерацию цикла — так задумано (Евгений, 2026-10-03)",
+  "props": []
+ },
+ {
+  "id": "G1",
+  "prio": "P1",
+  "name": "test_g1_external_clock_bpm_display",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "отображаемый BPM при Clock 130",
+    128
+   ]
+  ]
+ },
+ {
+  "id": "G2",
+  "prio": "P1",
+  "name": "test_g2_remote_transport_controls_app",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "G2",
+  "prio": "P1",
+  "name": "test_g2b_local_play_sends_start_stop",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "G3",
+  "prio": "P1",
+  "name": "test_g3_clock_and_transport_forwarded",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "Clock отправлено / получено; транспорт",
+    "82 / 82; ['start', 'continue', 'stop']"
+   ]
+  ]
+ },
+ {
+  "id": "G4",
+  "prio": "P2",
+  "name": "test_g4_clock_ignored_when_clkin_off",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "реалтайм-сообщений на выходе при CLKIN=OFF, CLKOUT=OFF",
+    0
+   ]
+  ]
+ },
+ {
+  "id": "H1",
+  "prio": "P1",
+  "name": "test_h1_cc_flood_with_external_clock",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "CC отправлено / получено; gap max, мкс; loop max, мкс",
+    "5000 / 5000; 22515; 22480"
+   ]
+  ]
+ },
+ {
+  "id": "H4",
+  "prio": "P2",
+  "name": "test_h4_active_sensing_ignored",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ }
+]

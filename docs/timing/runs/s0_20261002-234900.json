@@ -1,0 +1,1091 @@
+[
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_console_state",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_virtual_buttons_drive_real_ui_code",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_encoder_moves_cursor",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_long_press_encoder_opens_menu",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_param_setter_uses_ui_path",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_midi_loopback_passthrough",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_screen_dump_not_blank",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "S",
+  "prio": "P0",
+  "name": "test_clock_out_reaches_pc",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "B1",
+  "prio": "P0",
+  "name": "test_b1_idle_baseline",
+  "status": "DEFECT",
+  "msg": "ESP: опоздание тика 4237 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 2,
+     "save.eeprom": 585
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:572 <0.5мс:1 <2мс:1 <5мс:3"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:676600 <1мс:1 <5мс:6"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:338296 <1мс:1 <5мс:6"
+   ],
+   [
+    "loop max, мкс",
+    4522
+   ],
+   [
+    "EEPROM commit",
+    1
+   ],
+   [
+    "ПК: Clock",
+    "n=575 mean=20.832 σ=0.353 min=16.56 max=25.03 p99=21.11 (nominal 20.833) выбросов>26.0мс: 0"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.3"
+   ]
+  ]
+ },
+ {
+  "id": "B2",
+  "prio": "P0",
+  "name": "test_b2_arp_running_with_redraw",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 55,
+     "ui.draw": 14136,
+     "save.eeprom": 3236
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:590"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:533214 <1мс:2 <5мс:7 <20мс:192"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:266505 <1мс:2 <5мс:7 <20мс:193"
+   ],
+   [
+    "loop max, мкс",
+    14256
+   ],
+   [
+    "EEPROM commit",
+    1
+   ],
+   [
+    "ПК: Clock",
+    "n=588 mean=20.834 σ=0.684 min=19.17 max=22.67 p99=21.79 (nominal 20.833) выбросов>26.0мс: 0"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.3"
+   ],
+   [
+    "ui.draw (макс/кол-во)",
+    {
+     "n": 193,
+     "max": 14136,
+     "sum": 2705730
+    }
+   ]
+  ]
+ },
+ {
+  "id": "B3",
+  "prio": "P0",
+  "name": "test_b3_encoder_spin_redraw",
+  "status": "DEFECT",
+  "msg": "ПК: интервал Clock 34.7 мс > 26.3 мс (выбросов 37); ESP: опоздание тика 13841 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 5,
+     "ui.draw": 13909,
+     "save.eeprom": 2834
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:333 <0.5мс:1 <1мс:3 <2мс:6 <5мс:8 <10мс:23 <20мс:16"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:401038 <1мс:34 <2мс:10 <5мс:5 <20мс:66"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:200505 <5мс:5 <20мс:66"
+   ],
+   [
+    "loop max, мкс",
+    15007
+   ],
+   [
+    "EEPROM commit",
+    1
+   ],
+   [
+    "ПК: Clock",
+    "n=388 mean=20.817 σ=4.405 min=6.90 max=34.70 p99=33.69 (nominal 20.833) выбросов>26.0мс: 37"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.3"
+   ]
+  ]
+ },
+ {
+  "id": "B4",
+  "prio": "P0",
+  "name": "test_b4_sequencer_step_stop_all",
+  "status": "DEFECT",
+  "msg": "ПК: интервал Clock 37.2 мс > 26.3 мс (выбросов 96); ESP: опоздание тика 3917 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 727,
+     "ui.draw": 14186,
+     "mel.stopAll": 613,
+     "save.eeprom": 3508
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:586 <1мс:1 <2мс:1 <5мс:2"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:603314 <1мс:36 <5мс:7 <20мс:98"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:301620 <1мс:2 <5мс:7 <20мс:98"
+   ],
+   [
+    "loop max, мкс",
+    14981
+   ],
+   [
+    "EEPROM commit",
+    1
+   ],
+   [
+    "ПК: Clock",
+    "n=587 mean=20.832 σ=9.278 min=4.45 max=37.18 p99=37.13 (nominal 20.833) выбросов>26.0мс: 96"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.3"
+   ],
+   [
+    "CC123 всего / NoteOn(60)",
+    "1551 / 96"
+   ],
+   [
+    "NoteOn: макс. отклонение от 125 мс",
+    "0.3 мс"
+   ]
+  ]
+ },
+ {
+  "id": "B5",
+  "prio": "P0",
+  "name": "test_b5_song_pattern_boundary",
+  "status": "DEFECT",
+  "msg": "ПК: интервал Clock 146.6 мс > 26.3 мс (выбросов 8); ESP: опоздание тика 96714 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 117509,
+     "ui.draw": 14153,
+     "song.loadBuf": 13643,
+     "song.stopAll": 117393,
+     "save.eeprom": 18563
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:552 <5мс:1 <10мс:6 <20мс:1 ≥20мс:30"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:567663 <2мс:1 <5мс:6 <20мс:92 ≥100мс:5"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:283782 <2мс:1 <5мс:6 <20мс:88 ≥100мс:6"
+   ],
+   [
+    "loop max, мкс",
+    145687
+   ],
+   [
+    "EEPROM commit",
+    1
+   ],
+   [
+    "ПК: Clock",
+    "n=588 mean=20.847 σ=13.700 min=0.22 max=146.57 p99=146.43 (nominal 20.833) выбросов>26.0мс: 8"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.3"
+   ],
+   [
+    "song.stopAll / song.loadBuf (макс, мкс)",
+    [
+     117393,
+     13643
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "B6",
+  "prio": "P0",
+  "name": "test_b6_arp_release_last_key",
+  "status": "DEFECT",
+  "msg": "ПК: интервал Clock 139.1 мс > 26.3 мс (выбросов 4); ESP: опоздание тика 111923 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 58,
+     "ui.draw": 14069,
+     "arp.stopSounding": 117481,
+     "save.eeprom": 3292
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:451 <5мс:3 <10мс:1 <20мс:2 ≥20мс:18"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:463027 <1мс:2 <5мс:5 <20мс:77 ≥100мс:4"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:231469 <1мс:2 <5мс:5 <20мс:77 ≥100мс:4"
+   ],
+   [
+    "loop max, мкс",
+    117688
+   ],
+   [
+    "EEPROM commit",
+    1
+   ],
+   [
+    "ПК: Clock",
+    "n=473 mean=20.832 σ=11.107 min=0.26 max=139.13 p99=24.84 (nominal 20.833) выбросов>26.0мс: 4"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.3"
+   ],
+   [
+    "arp.stopSounding (макс, мкс)",
+    117481
+   ]
+  ]
+ },
+ {
+  "id": "B7",
+  "prio": "P0",
+  "name": "test_b7_pattern_switch_while_playing",
+  "status": "DEFECT",
+  "msg": "ПК: интервал Clock 37.2 мс > 26.3 мс (выбросов 83); ESP: опоздание тика 16422 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 741,
+     "ui.draw": 14199,
+     "mel.stopAll": 681,
+     "mel.load": 18113
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:459 <0.5мс:1 <2мс:1 <5мс:4 <10мс:15 <20мс:16"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:460597 <1мс:31 <5мс:3 <20мс:99 <50мс:11"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:230265 <1мс:1 <5мс:3 <20мс:81 <50мс:20"
+   ],
+   [
+    "loop max, мкс",
+    37647
+   ],
+   [
+    "EEPROM commit",
+    0
+   ],
+   [
+    "ПК: Clock",
+    "n=494 mean=20.865 σ=9.031 min=4.41 max=37.21 p99=37.13 (nominal 20.833) выбросов>26.0мс: 83"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.3"
+   ],
+   [
+    "mel.load (макс, мкс)",
+    18113
+   ]
+  ]
+ },
+ {
+  "id": "B8",
+  "prio": "P0",
+  "name": "test_b8_autosave_stall",
+  "status": "DEFECT",
+  "msg": "ESP: опоздание тика 10927 мкс > 3000",
+  "props": [
+   [
+    "scopes (макс, мкс)",
+    {
+     "dispatch_tick": 5,
+     "ui.draw": 13823,
+     "save.eeprom": 2848
+    }
+   ],
+   [
+    "опоздание тика, гист.",
+    "<0.1мс:406 <20мс:1"
+   ],
+   [
+    "зазор обслуживания, гист.",
+    "<0.5мс:468353 <2мс:1 <5мс:6 <20мс:1"
+   ],
+   [
+    "итерация loop, гист.",
+    "<0.5мс:234173 <5мс:6 <20мс:1"
+   ],
+   [
+    "loop max, мкс",
+    14889
+   ],
+   [
+    "EEPROM commit",
+    1
+   ],
+   [
+    "ПК: Clock",
+    "n=405 mean=20.805 σ=0.550 min=9.83 max=21.12 p99=21.04 (nominal 20.833) выбросов>26.0мс: 0"
+   ],
+   [
+    "ПК: предел интервала, мс",
+    "26.3"
+   ],
+   [
+    "save.eeprom (макс, мкс)",
+    2848
+   ]
+  ]
+ },
+ {
+  "id": "B11",
+  "prio": "P1",
+  "name": "test_b11_tempo_accuracy",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "средний интервал / номинал",
+    "20.8322 / 20.8333 мс; отклонение 0.0054 %"
+   ]
+  ]
+ },
+ {
+  "id": "B12",
+  "prio": "P1",
+  "name": "test_b12_tap_tempo_uses_only_last_interval",
+  "status": "UNCLEAR",
+  "msg": "BPM=69: учтён только последний интервал, среднее было бы 92",
+  "props": [
+   [
+    "BPM после TAP / среднее по интервалам",
+    "69 / 92.3"
+   ]
+  ]
+ },
+ {
+  "id": "B13",
+  "prio": "P1",
+  "name": "test_b13_external_clock_lost_hangs_notes",
+  "status": "DEFECT",
+  "msg": "зависшие ноты после потери Clock: [(1, 60)]",
+  "props": []
+ },
+ {
+  "id": "B14",
+  "prio": "P1",
+  "name": "test_b14_first_step_plays_on_start",
+  "status": "UNCLEAR",
+  "msg": "первая нота на тике 5 — со сдвигом на 5 тик(ов) от Start",
+  "props": [
+   [
+    "тик первой ноты после Start (0 = сразу)",
+    5
+   ]
+  ]
+ },
+ {
+  "id": "C1",
+  "prio": "P0",
+  "name": "test_c1_seq_strum_no_double_send",
+  "status": "DEFECT",
+  "msg": "ожидалось 1/1, получено 2/2",
+  "props": [
+   [
+    "NoteOn / NoteOff на выходе",
+    "2 / 2"
+   ]
+  ]
+ },
+ {
+  "id": "C2",
+  "prio": "P0",
+  "name": "test_c2_arp_hold_swallows_note_off",
+  "status": "DEFECT",
+  "msg": "зависшие ноты на выходе: [(1, 60)]",
+  "props": []
+ },
+ {
+  "id": "C3",
+  "prio": "P1",
+  "name": "test_c3_arp_retrigger_without_note_off",
+  "status": "DEFECT",
+  "msg": "NoteOn на звучащую ноту без NoteOff: [(1, 60)]",
+  "props": [
+   [
+    "NoteOn поверх звучащей ноты",
+    [
+     [
+      1,
+      60
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "C4",
+  "prio": "P1",
+  "name": "test_c4_seq_cc123_during_playback",
+  "status": "UNCLEAR",
+  "msg": "80 сообщений CC123 во время воспроизведения (по 16 каналам на каждом шаге)",
+  "props": [
+   [
+    "CC123 за 30 тиков воспроизведения (5 шагов)",
+    80
+   ]
+  ]
+ },
+ {
+  "id": "C5",
+  "prio": "P1",
+  "name": "test_c5_passthrough_other_messages[pitchbend]",
+  "status": "UNCLEAR",
+  "msg": "pitchbend: на выходе тишина — сообщение отброшено прошивкой",
+  "props": []
+ },
+ {
+  "id": "C5",
+  "prio": "P1",
+  "name": "test_c5_passthrough_other_messages[program]",
+  "status": "UNCLEAR",
+  "msg": "program: на выходе тишина — сообщение отброшено прошивкой",
+  "props": []
+ },
+ {
+  "id": "C5",
+  "prio": "P1",
+  "name": "test_c5_passthrough_other_messages[channel_pressure]",
+  "status": "UNCLEAR",
+  "msg": "channel_pressure: на выходе тишина — сообщение отброшено прошивкой",
+  "props": []
+ },
+ {
+  "id": "C5",
+  "prio": "P1",
+  "name": "test_c5_passthrough_other_messages[poly_pressure]",
+  "status": "UNCLEAR",
+  "msg": "poly_pressure: на выходе тишина — сообщение отброшено прошивкой",
+  "props": []
+ },
+ {
+  "id": "C5",
+  "prio": "P1",
+  "name": "test_c5_passthrough_other_messages[sysex]",
+  "status": "UNCLEAR",
+  "msg": "sysex: на выходе тишина — сообщение отброшено прошивкой",
+  "props": []
+ },
+ {
+  "id": "C11",
+  "prio": "P0",
+  "name": "test_c11_sysex_locks_note_input",
+  "status": "DEFECT",
+  "msg": "после одного SysEx прошивка перестала принимать ноты (до перезагрузки)",
+  "props": [
+   [
+    "нота видна монитору",
+    [
+     [
+      "до SysEx",
+      true
+     ],
+     [
+      "после SysEx",
+      false
+     ],
+     [
+      "после лишнего F7",
+      false
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "C6",
+  "prio": "P1",
+  "name": "test_c6_monitor_shows_wrong_channel",
+  "status": "DEFECT",
+  "msg": "монитор показывает не тот канал: [(1, [2]), (2, [3]), (3, [4]), (4, [5]), (5, [6]), (6, [7]), (7, [8]), (8, [9])]",
+  "props": [
+   [
+    "(отправлен канал, показано)",
+    [
+     [
+      1,
+      [
+       2
+      ]
+     ],
+     [
+      2,
+      [
+       3
+      ]
+     ],
+     [
+      3,
+      [
+       4
+      ]
+     ],
+     [
+      4,
+      [
+       5
+      ]
+     ],
+     [
+      5,
+      [
+       6
+      ]
+     ],
+     [
+      6,
+      [
+       7
+      ]
+     ],
+     [
+      7,
+      [
+       8
+      ]
+     ],
+     [
+      8,
+      [
+       9
+      ]
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "C7",
+  "prio": "P2",
+  "name": "test_c7_note_on_velocity_zero_is_note_off",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "C9",
+  "prio": "P2",
+  "name": "test_c9_arp_capacity_8_keys_4_octaves",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "различных нот в арпеджио",
+    32
+   ]
+  ]
+ },
+ {
+  "id": "C10",
+  "prio": "P0",
+  "name": "test_c10_seq_rec_strum_off_swallows_note_off",
+  "status": "DEFECT",
+  "msg": "зависшие ноты на выходе: [(1, 60)]",
+  "props": []
+ },
+ {
+  "id": "D1",
+  "prio": "P1",
+  "name": "test_d1_record_lands_on_sounding_step",
+  "status": "DEFECT",
+  "msg": "нота записана в шаг [1] вместо 0",
+  "props": [
+   [
+    "ноты в шагах 0/1/2",
+    [
+     [],
+     [
+      60
+     ],
+     []
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "D3",
+  "prio": "P1",
+  "name": "test_d3_tie_extends_note_by_one_step_each[1-9]",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "тик NoteOn / NoteOff",
+    [
+     5,
+     14
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "D3",
+  "prio": "P1",
+  "name": "test_d3_tie_extends_note_by_one_step_each[2-15]",
+  "status": "DEFECT",
+  "msg": "длина ноты 18 тиков, ожидалось 15",
+  "props": [
+   [
+    "тик NoteOn / NoteOff",
+    [
+     5,
+     23
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "D4",
+  "prio": "P1",
+  "name": "test_d4_shrink_length_while_playing_pend",
+  "status": "DEFECT",
+  "msg": "playhead на шаге 9 при LENGTH=4",
+  "props": [
+   [
+    "шаг после уменьшения LENGTH до 4",
+    9
+   ]
+  ]
+ },
+ {
+  "id": "D5",
+  "prio": "P1",
+  "name": "test_d5_record_limits_in_step_edit",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "шаг 0",
+    {
+     "n": [
+      61,
+      62,
+      63,
+      64,
+      65,
+      66
+     ],
+     "v": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+     ],
+     "cc": [
+      [
+       2,
+       20
+      ],
+      [
+       3,
+       30
+      ],
+      [
+       4,
+       40
+      ]
+     ],
+     "tie": 0,
+     "tr": 0
+    }
+   ]
+  ]
+ },
+ {
+  "id": "D6",
+  "prio": "P0",
+  "name": "test_d6_pattern_file_roundtrip",
+  "status": "ERROR",
+  "msg": "нет ответа на '632 fs get /patterns/pat_04.bin 1920 320'",
+  "props": []
+ },
+ {
+  "id": "D7",
+  "prio": "P1",
+  "name": "test_d7_unsaved_edits_survive_pattern_switch",
+  "status": "UNCLEAR",
+  "msg": "несохранённая правка потеряна без предупреждения (шаг 0 = [60])",
+  "props": []
+ },
+ {
+  "id": "D8",
+  "prio": "P1",
+  "name": "test_d8_clear_keeps_pattern_slot",
+  "status": "DEFECT",
+  "msg": "после CLEAR слот сброшен в 0: после перезагрузки загрузится не тот паттерн",
+  "props": [
+   [
+    "внутренний слот после CLEAR (экран показывает PTRN 5)",
+    0
+   ]
+  ]
+ },
+ {
+  "id": "D10",
+  "prio": "P0",
+  "name": "test_d10_song_rnd_cycle_off_stops_early",
+  "status": "DEFECT",
+  "msg": "песня остановилась раньше конца (4 из 8 шагов): шаг 0 выпал случайно",
+  "props": [
+   [
+    "(сыграно шагов, остановилась) по попыткам",
+    [
+     [
+      9,
+      true
+     ],
+     [
+      11,
+      false
+     ],
+     [
+      4,
+      true
+     ]
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "D11",
+  "prio": "P1",
+  "name": "test_d11_mute_lasts_as_long_as_the_pattern",
+  "status": "DEFECT",
+  "msg": "обычный шаг 48 тиков, заглушённый 96 (pauseLength × DIV)",
+  "props": [
+   [
+    "длительность шага, тиков (обычный / MUTE)",
+    [
+     48,
+     96
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "D12",
+  "prio": "P1",
+  "name": "test_d12_song_ignores_gate",
+  "status": "UNCLEAR",
+  "msg": "SEQ 1 тиков, SONG 6 тиков",
+  "props": [
+   [
+    "длина ноты, тиков (SEQ при GATE=20 / SONG)",
+    [
+     1,
+     6
+    ]
+   ]
+  ]
+ },
+ {
+  "id": "D15",
+  "prio": "P2",
+  "name": "test_d15_song_rev_starts_from_last_step",
+  "status": "UNCLEAR",
+  "msg": "REV стартует с шага 1 вместо 4 (SEQ в REV стартует с последнего)",
+  "props": []
+ },
+ {
+  "id": "A3",
+  "prio": "P2",
+  "name": "test_a3_first_boot_defaults",
+  "status": "SKIP",
+  "msg": "Skipped: стирает flash устройства; добавьте --allow-wipe",
+  "props": []
+ },
+ {
+  "id": "E1",
+  "prio": "P0",
+  "name": "test_e1_eeprom_overlap[120]",
+  "status": "DEFECT",
+  "msg": "параметры SEQ после перезагрузки изменились: {'mode': 2, 'ch': 5, 'gate': 70, 'swing': 4, 'rand': 120, 'prob': 3}",
+  "props": [
+   [
+    "BPM=120: ожидалось / получено",
+    "{'mode': 2, 'ch': 5, 'gate': 70, 'swing': 0, 'rand': 0, 'prob': 0} / {'mode': 2, 'ch': 5, 'gate': 70, 'swing': 4, 'rand': 120, 'prob': 3}"
+   ]
+  ]
+ },
+ {
+  "id": "E1",
+  "prio": "P0",
+  "name": "test_e1_eeprom_overlap[140]",
+  "status": "DEFECT",
+  "msg": "параметры SEQ после перезагрузки изменились: {'mode': 0, 'ch': 1, 'gate': 80, 'swing': 0, 'rand': 0, 'prob': 0}",
+  "props": [
+   [
+    "BPM=140: ожидалось / получено",
+    "{'mode': 2, 'ch': 5, 'gate': 70, 'swing': 0, 'rand': 0, 'prob': 0} / {'mode': 0, 'ch': 1, 'gate': 80, 'swing': 0, 'rand': 0, 'prob': 0}"
+   ]
+  ]
+ },
+ {
+  "id": "E3",
+  "prio": "P1",
+  "name": "test_e3_app_selection_persists",
+  "status": "DEFECT",
+  "msg": "после перезагрузки приложение 0 вместо выбранного 2",
+  "props": []
+ },
+ {
+  "id": "E4",
+  "prio": "P1",
+  "name": "test_e4_arp_play_state_not_restored_as_playing",
+  "status": "DEFECT",
+  "msg": "ARP стартует в состоянии PLAY после перезагрузки",
+  "props": []
+ },
+ {
+  "id": "E5",
+  "prio": "P2",
+  "name": "test_e5_plain_play_does_not_change_flash[mel]",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "mel: commit-вызовов / EEPROM изменился",
+    "1 / False"
+   ]
+  ]
+ },
+ {
+  "id": "E5",
+  "prio": "P2",
+  "name": "test_e5_plain_play_does_not_change_flash[song]",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "song: commit-вызовов / EEPROM изменился",
+    "1 / False"
+   ]
+  ]
+ },
+ {
+  "id": "F2",
+  "prio": "P1",
+  "name": "test_f2_step_edit_fast_turn",
+  "status": "DEFECT",
+  "msg": "шаг сместился на 1: delta сводится к знаку",
+  "props": [
+   [
+    "сдвиг редактируемого шага после 10 щелчков",
+    1
+   ]
+  ]
+ },
+ {
+  "id": "G1",
+  "prio": "P1",
+  "name": "test_g1_external_clock_bpm_display",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "отображаемый BPM при Clock 130",
+    128
+   ]
+  ]
+ },
+ {
+  "id": "G2",
+  "prio": "P1",
+  "name": "test_g2_remote_transport_controls_app",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "G2",
+  "prio": "P1",
+  "name": "test_g2b_local_play_sends_start_stop",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ },
+ {
+  "id": "G3",
+  "prio": "P1",
+  "name": "test_g3_clock_and_transport_forwarded",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "Clock отправлено / получено; транспорт",
+    "82 / 82; ['start', 'continue', 'stop']"
+   ]
+  ]
+ },
+ {
+  "id": "G4",
+  "prio": "P2",
+  "name": "test_g4_clock_ignored_when_clkin_off",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "реалтайм-сообщений на выходе при CLKIN=OFF, CLKOUT=OFF",
+    0
+   ]
+  ]
+ },
+ {
+  "id": "H1",
+  "prio": "P1",
+  "name": "test_h1_cc_flood_with_external_clock",
+  "status": "OK",
+  "msg": "",
+  "props": [
+   [
+    "CC отправлено / получено; gap max, мкс; loop max, мкс",
+    "4999 / 4999; 20242; 20205"
+   ]
+  ]
+ },
+ {
+  "id": "H4",
+  "prio": "P2",
+  "name": "test_h4_active_sensing_ignored",
+  "status": "OK",
+  "msg": "",
+  "props": []
+ }
+]

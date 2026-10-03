@@ -1,0 +1,783 @@
+{
+ "s0/B1": {
+  "sd": 0.353,
+  "min": 16.56,
+  "max": 25.03,
+  "over": 0,
+  "late_hist": [
+   572,
+   1,
+   0,
+   1,
+   3,
+   0,
+   0,
+   0
+  ],
+  "late_worst": "2–5",
+  "late_over1": 4,
+  "scopes": {
+   "dispatch_tick": 2,
+   "save.eeprom": 585
+  }
+ },
+ "s0/B2": {
+  "sd": 0.684,
+  "min": 19.17,
+  "max": 22.67,
+  "over": 0,
+  "late_hist": [
+   590,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "late_worst": "<0,1",
+  "late_over1": 0,
+  "scopes": {
+   "dispatch_tick": 55,
+   "ui.draw": 14136,
+   "save.eeprom": 3236
+  }
+ },
+ "s0/B3": {
+  "sd": 4.405,
+  "min": 6.9,
+  "max": 34.7,
+  "over": 37,
+  "late_hist": [
+   333,
+   1,
+   3,
+   6,
+   8,
+   23,
+   16,
+   0
+  ],
+  "late_worst": "10–20",
+  "late_over1": 53,
+  "scopes": {
+   "dispatch_tick": 5,
+   "ui.draw": 13909,
+   "save.eeprom": 2834
+  }
+ },
+ "s0/B4": {
+  "sd": 9.278,
+  "min": 4.45,
+  "max": 37.18,
+  "over": 96,
+  "late_hist": [
+   586,
+   0,
+   1,
+   1,
+   2,
+   0,
+   0,
+   0
+  ],
+  "late_worst": "2–5",
+  "late_over1": 3,
+  "scopes": {
+   "dispatch_tick": 727,
+   "ui.draw": 14186,
+   "mel.stopAll": 613,
+   "save.eeprom": 3508
+  }
+ },
+ "s0/B5": {
+  "sd": 13.7,
+  "min": 0.22,
+  "max": 146.57,
+  "over": 8,
+  "late_hist": [
+   552,
+   0,
+   0,
+   0,
+   1,
+   6,
+   1,
+   30
+  ],
+  "late_worst": "≥20",
+  "late_over1": 38,
+  "scopes": {
+   "dispatch_tick": 117509,
+   "ui.draw": 14153,
+   "song.loadBuf": 13643,
+   "song.stopAll": 117393,
+   "save.eeprom": 18563
+  }
+ },
+ "s0/B6": {
+  "sd": 11.107,
+  "min": 0.26,
+  "max": 139.13,
+  "over": 4,
+  "late_hist": [
+   451,
+   0,
+   0,
+   0,
+   3,
+   1,
+   2,
+   18
+  ],
+  "late_worst": "≥20",
+  "late_over1": 24,
+  "scopes": {
+   "dispatch_tick": 58,
+   "ui.draw": 14069,
+   "arp.stopSounding": 117481,
+   "save.eeprom": 3292
+  }
+ },
+ "s0/B7": {
+  "sd": 9.031,
+  "min": 4.41,
+  "max": 37.21,
+  "over": 83,
+  "late_hist": [
+   459,
+   1,
+   0,
+   1,
+   4,
+   15,
+   16,
+   0
+  ],
+  "late_worst": "10–20",
+  "late_over1": 36,
+  "scopes": {
+   "dispatch_tick": 741,
+   "ui.draw": 14199,
+   "mel.stopAll": 681,
+   "mel.load": 18113
+  }
+ },
+ "s0/B8": {
+  "sd": 0.55,
+  "min": 9.83,
+  "max": 21.12,
+  "over": 0,
+  "late_hist": [
+   406,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0
+  ],
+  "late_worst": "10–20",
+  "late_over1": 1,
+  "scopes": {
+   "dispatch_tick": 5,
+   "ui.draw": 13823,
+   "save.eeprom": 2848
+  }
+ },
+ "s1/B1": {
+  "sd": 0.068,
+  "min": 20.46,
+  "max": 21.22,
+  "over": 0,
+  "late_hist": [
+   577,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "late_worst": "<0,1",
+  "late_over1": 0,
+  "scopes": {
+   "dispatch_tick": 2
+  }
+ },
+ "s1/B2": {
+  "sd": 1.169,
+  "min": 12.69,
+  "max": 34.47,
+  "over": 2,
+  "late_hist": [
+   583,
+   0,
+   0,
+   1,
+   3,
+   2,
+   1,
+   0
+  ],
+  "late_worst": "10–20",
+  "late_over1": 7,
+  "scopes": {
+   "dispatch_tick": 75,
+   "ui.draw": 14186,
+   "save.eeprom": 18109
+  }
+ },
+ "s1/B3": {
+  "sd": 3.633,
+  "min": 7.47,
+  "max": 34.27,
+  "over": 24,
+  "late_hist": [
+   352,
+   8,
+   0,
+   2,
+   9,
+   10,
+   14,
+   0
+  ],
+  "late_worst": "10–20",
+  "late_over1": 35,
+  "scopes": {
+   "dispatch_tick": 3,
+   "ui.draw": 13902
+  }
+ },
+ "s1/B4": {
+  "sd": 9.332,
+  "min": 4.4,
+  "max": 37.27,
+  "over": 98,
+  "late_hist": [
+   588,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  "late_worst": "5–10",
+  "late_over1": 1,
+  "scopes": {
+   "dispatch_tick": 734,
+   "ui.draw": 14211,
+   "mel.stopAll": 615,
+   "save.eeprom": 589
+  }
+ },
+ "s1/B5": {
+  "sd": 13.679,
+  "min": 0.16,
+  "max": 146.49,
+  "over": 7,
+  "late_hist": [
+   545,
+   0,
+   0,
+   0,
+   7,
+   1,
+   6,
+   30
+  ],
+  "late_worst": "≥20",
+  "late_over1": 44,
+  "scopes": {
+   "dispatch_tick": 117515,
+   "ui.draw": 14171,
+   "song.loadBuf": 17476,
+   "song.stopAll": 117402,
+   "save.eeprom": 592
+  }
+ },
+ "s1/B6": {
+  "sd": 11.293,
+  "min": 0.24,
+  "max": 140.76,
+  "over": 5,
+  "late_hist": [
+   451,
+   0,
+   0,
+   0,
+   1,
+   2,
+   1,
+   19
+  ],
+  "late_worst": "≥20",
+  "late_over1": 23,
+  "scopes": {
+   "dispatch_tick": 52,
+   "ui.draw": 14080,
+   "arp.stopSounding": 117464,
+   "save.eeprom": 2777
+  }
+ },
+ "s1/B7": {
+  "sd": 9.215,
+  "min": 0.25,
+  "max": 37.23,
+  "over": 86,
+  "late_hist": [
+   458,
+   1,
+   1,
+   1,
+   2,
+   7,
+   23,
+   3
+  ],
+  "late_worst": "≥20",
+  "late_over1": 36,
+  "scopes": {
+   "dispatch_tick": 735,
+   "ui.draw": 14214,
+   "mel.stopAll": 667,
+   "mel.load": 24599
+  }
+ },
+ "s1/B8": {
+  "sd": 0.689,
+  "min": 7.71,
+  "max": 23.41,
+  "over": 0,
+  "late_hist": [
+   402,
+   1,
+   0,
+   1,
+   1,
+   0,
+   1,
+   0
+  ],
+  "late_worst": "10–20",
+  "late_over1": 3,
+  "scopes": {
+   "ui.draw": 13917,
+   "dispatch_tick": 7,
+   "save.eeprom": 2764
+  }
+ },
+ "s2/B1": {
+  "sd": 0.06,
+  "min": 20.58,
+  "max": 21.08,
+  "over": 0,
+  "late_hist": [
+   576,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "late_worst": "<0,1",
+  "late_over1": 0,
+  "scopes": {
+   "dispatch_tick": 1
+  }
+ },
+ "s2/B2": {
+  "sd": 0.75,
+  "min": 15.36,
+  "max": 26.35,
+  "over": 1,
+  "late_hist": [
+   587,
+   1,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0
+  ],
+  "late_worst": "5–10",
+  "late_over1": 2,
+  "scopes": {
+   "dispatch_tick": 49,
+   "ui.draw": 8305
+  }
+ },
+ "s2/B3": {
+  "sd": 1.924,
+  "min": 12.93,
+  "max": 28.81,
+  "over": 13,
+  "late_hist": [
+   360,
+   2,
+   5,
+   4,
+   8,
+   13,
+   0,
+   0
+  ],
+  "late_worst": "5–10",
+  "late_over1": 25,
+  "scopes": {
+   "dispatch_tick": 4,
+   "ui.draw": 8262
+  }
+ },
+ "s2/B4": {
+  "sd": 0.839,
+  "min": 13.86,
+  "max": 27.8,
+  "over": 1,
+  "late_hist": [
+   589,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  "late_worst": "5–10",
+  "late_over1": 1,
+  "scopes": {
+   "dispatch_tick": 166,
+   "ui.draw": 12120,
+   "mel.stopAll": 4
+  }
+ },
+ "s2/B5": {
+  "sd": 1.212,
+  "min": 12.99,
+  "max": 28.68,
+  "over": 2,
+  "late_hist": [
+   585,
+   0,
+   1,
+   1,
+   2,
+   1,
+   0,
+   0
+  ],
+  "late_worst": "5–10",
+  "late_over1": 4,
+  "scopes": {
+   "dispatch_tick": 122,
+   "song.loadBuf": 11693,
+   "ui.draw": 12037,
+   "song.stopAll": 40
+  }
+ },
+ "s2/B6": {
+  "sd": 0.653,
+  "min": 14.99,
+  "max": 24.96,
+  "over": 0,
+  "late_hist": [
+   472,
+   0,
+   0,
+   0,
+   2,
+   1,
+   0,
+   0
+  ],
+  "late_worst": "5–10",
+  "late_over1": 3,
+  "scopes": {
+   "dispatch_tick": 49,
+   "ui.draw": 8343,
+   "arp.stopSounding": 54
+  }
+ },
+ "s2/B7": {
+  "sd": 2.113,
+  "min": 8.47,
+  "max": 35.3,
+  "over": 9,
+  "late_hist": [
+   474,
+   1,
+   1,
+   1,
+   6,
+   8,
+   4,
+   0
+  ],
+  "late_worst": "10–20",
+  "late_over1": 19,
+  "scopes": {
+   "dispatch_tick": 166,
+   "ui.draw": 12126,
+   "mel.stopAll": 69,
+   "mel.load": 14211
+  }
+ },
+ "s2/B8": {
+  "sd": 0.792,
+  "min": 15.57,
+  "max": 26.16,
+  "over": 1,
+  "late_hist": [
+   349,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  "late_worst": "5–10",
+  "late_over1": 1,
+  "scopes": {
+   "dispatch_tick": 48,
+   "ui.draw": 12250
+  }
+ },
+ "s3/B1": {
+  "sd": 0.275,
+  "min": 18.75,
+  "max": 22.76,
+  "over": 0,
+  "late_hist": [
+   125,
+   442,
+   9,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "late_worst": "0,5–1",
+  "late_over1": 0,
+  "scopes": {
+   "dispatch_tick": 1
+  }
+ },
+ "s3/B2": {
+  "sd": 0.365,
+  "min": 16.52,
+  "max": 24.74,
+  "over": 0,
+  "late_hist": [
+   129,
+   451,
+   9,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "late_worst": "0,5–1",
+  "late_over1": 0,
+  "scopes": {
+   "dispatch_tick": 17,
+   "ui.draw": 1366,
+   "ui.page": 0,
+   "ui.flush": 7240
+  }
+ },
+ "s3/B3": {
+  "sd": 0.273,
+  "min": 19.87,
+  "max": 21.87,
+  "over": 0,
+  "late_hist": [
+   63,
+   313,
+   10,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  "late_worst": "1–2",
+  "late_over1": 1,
+  "scopes": {
+   "ui.draw": 1147,
+   "dispatch_tick": 3,
+   "ui.page": 0,
+   "ui.flush": 7206
+  }
+ },
+ "s3/B4": {
+  "sd": 0.254,
+  "min": 20.16,
+  "max": 21.47,
+  "over": 0,
+  "late_hist": [
+   130,
+   451,
+   9,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "late_worst": "0,5–1",
+  "late_over1": 0,
+  "scopes": {
+   "dispatch_tick": 102,
+   "ui.draw": 1469,
+   "ui.page": 0,
+   "mel.stopAll": 3,
+   "ui.flush": 10804
+  }
+ },
+ "s3/B5": {
+  "sd": 0.252,
+  "min": 20.02,
+  "max": 21.52,
+  "over": 0,
+  "late_hist": [
+   129,
+   452,
+   9,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "late_worst": "0,5–1",
+  "late_over1": 0,
+  "scopes": {
+   "dispatch_tick": 56,
+   "ui.draw": 1362,
+   "ui.page": 0,
+   "ui.flush": 10720,
+   "song.stopAll": 4
+  }
+ },
+ "s3/B6": {
+  "sd": 0.241,
+  "min": 20.29,
+  "max": 21.28,
+  "over": 0,
+  "late_hist": [
+   91,
+   373,
+   10,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "late_worst": "0,5–1",
+  "late_over1": 0,
+  "scopes": {
+   "dispatch_tick": 17,
+   "ui.draw": 1259,
+   "ui.page": 0,
+   "ui.flush": 7237,
+   "arp.stopSounding": 12
+  }
+ },
+ "s3/B7": {
+  "sd": 0.258,
+  "min": 19.64,
+  "max": 21.98,
+  "over": 0,
+  "late_hist": [
+   97,
+   389,
+   10,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "late_worst": "0,5–1",
+  "late_over1": 0,
+  "scopes": {
+   "dispatch_tick": 113,
+   "ui.draw": 1470,
+   "ui.page": 0,
+   "mel.stopAll": 11,
+   "ui.flush": 10918,
+   "mel.load": 29267
+  }
+ },
+ "s3/B8": {
+  "sd": 0.258,
+  "min": 19.48,
+  "max": 22.04,
+  "over": 0,
+  "late_hist": [
+   60,
+   291,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "late_worst": "0,1–0,5",
+  "late_over1": 0,
+  "scopes": {
+   "dispatch_tick": 19,
+   "ui.draw": 1410,
+   "ui.page": 0,
+   "ui.flush": 10763
+  }
+ },
+ "ops": {
+  "s0/dispatch_tick": 117.509,
+  "s0/song.stopAll": 117.393,
+  "s0/arp.stopSounding": 117.481,
+  "s0/mel.stopAll": 0.681,
+  "s0/ui.draw": 14.199,
+  "s0/mel.load": 18.113,
+  "s0/song.loadBuf": 13.643,
+  "s0/save.eeprom": 18.563,
+  "s1/dispatch_tick": 117.515,
+  "s1/song.stopAll": 117.402,
+  "s1/arp.stopSounding": 117.464,
+  "s1/mel.stopAll": 0.667,
+  "s1/ui.draw": 14.214,
+  "s1/mel.load": 24.599,
+  "s1/song.loadBuf": 17.476,
+  "s1/save.eeprom": 18.109,
+  "s2/dispatch_tick": 0.166,
+  "s2/song.stopAll": 0.04,
+  "s2/arp.stopSounding": 0.054,
+  "s2/mel.stopAll": 0.069,
+  "s2/ui.draw": 12.25,
+  "s2/mel.load": 14.211,
+  "s2/song.loadBuf": 11.693,
+  "s3/dispatch_tick": 0.113,
+  "s3/song.stopAll": 0.004,
+  "s3/arp.stopSounding": 0.012,
+  "s3/mel.stopAll": 0.011,
+  "s3/ui.draw": 1.47,
+  "s3/ui.flush": 10.918,
+  "s3/mel.load": 29.267
+ }
+}
