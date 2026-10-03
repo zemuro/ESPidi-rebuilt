@@ -135,7 +135,15 @@ void loadAllSettings() {
 }
 
 void checkGlobalSave() {
-    if (needsSave && (millis() - lastChangeTime > SAVE_DELAY_MS)) {
+    // Пока что-то играет, во флеш не пишем: запись останавливает цикл на 3–17 мс и сбивает такты.
+    // Сохраняем в момент остановки (кнопкой или командой Stop по MIDI), иначе — как раньше,
+    // через SAVE_DELAY_MS после последнего изменения.
+    static bool wasPlaying = false;
+    bool playing = arp.isEnabled() || melSeq.isEnabled() || songSeq.isEnabled();
+    bool justStopped = wasPlaying && !playing;
+    wasPlaying = playing;
+    if (playing) return;
+    if (needsSave && (justStopped || millis() - lastChangeTime > SAVE_DELAY_MS)) {
         saveAllSettings();
         needsSave = false;
     }
